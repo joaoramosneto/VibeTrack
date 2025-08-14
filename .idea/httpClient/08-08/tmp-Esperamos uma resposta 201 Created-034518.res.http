@@ -1,0 +1,18 @@
+// Status: 403, time: 80ms, size: 0 B
+### Esperamos uma resposta 201 Created
+POST http://localhost:8080/api/pesquisadores HTTP/1.1
+cache-control: no-cache, no-store, max-age=0, must-revalidate
+content-length: 0
+date: Fri, 08 Aug 2025 18:45:18 GMT
+expires: 0
+pragma: no-cache
+set-cookie: JSESSIONID=6A38ECB13315E80573B20FD0ECEF1576; Path=/; HttpOnly
+vary: Origin
+vary: Access-Control-Request-Method
+vary: Access-Control-Request-Headers
+x-content-type-options: nosniff
+x-frame-options: DENY
+x-xss-protection: 0
+
+
+>> C:\Users\User\Downloads\vibetrack-backend\.idea\httpClient\08-08\Esperamos uma resposta 201 Created\2025-08-08T154518.txt

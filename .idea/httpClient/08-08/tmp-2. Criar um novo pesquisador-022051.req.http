@@ -1,0 +1,11 @@
+// Size: 91 B
+### 2. Criar um novo pesquisador
+POST http://localhost:8080/api/pesquisadores HTTP/1.1
+Content-Type: application/json
+Content-Length: 91
+
+{
+  "nome": "Marie Curie",
+  "email": "marie.curie@vibe.track",
+  "senha": "password1234"
+}

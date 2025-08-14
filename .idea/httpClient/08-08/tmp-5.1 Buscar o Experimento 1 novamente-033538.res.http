@@ -1,0 +1,31 @@
+// Status: 200, time: 20ms, size: 258 B
+### 5.1 Buscar o Experimento 1 novamente
+GET http://localhost:8080/api/experimentos/1 HTTP/1.1
+cache-control: no-cache, no-store, max-age=0, must-revalidate
+content-type: application/json
+date: Fri, 08 Aug 2025 18:35:37 GMT
+expires: 0
+pragma: no-cache
+transfer-encoding: chunked
+vary: Origin
+vary: Access-Control-Request-Method
+vary: Access-Control-Request-Headers
+x-content-type-options: nosniff
+x-frame-options: DENY
+x-xss-protection: 0
+
+{
+  "id": 1,
+  "nome": "Teste Inicial",
+  "descricao": "Experimento para testar a API",
+  "dataInicio": "2025-08-01",
+  "dataFim": "2025-08-10",
+  "statusExperimento": "PLANEJADO",
+  "pesquisador": {
+    "id": 1,
+    "nome": "Dr. Ada Lovelace",
+    "email": "ada.lovelace@vibe.track"
+  },
+  "participantes": []
+}
+>> C:\Users\User\Downloads\vibetrack-backend\.idea\httpClient\08-08\5.1 Buscar o Experimento 1 novamente\2025-08-08T153537.json

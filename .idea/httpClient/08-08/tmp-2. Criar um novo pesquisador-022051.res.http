@@ -1,0 +1,22 @@
+// Status: 201, time: 771ms, size: 62 B
+### 2. Criar um novo pesquisador
+POST http://localhost:8080/api/pesquisadores HTTP/1.1
+cache-control: no-cache, no-store, max-age=0, must-revalidate
+content-type: application/json
+date: Fri, 08 Aug 2025 17:20:51 GMT
+expires: 0
+pragma: no-cache
+transfer-encoding: chunked
+vary: Origin
+vary: Access-Control-Request-Method
+vary: Access-Control-Request-Headers
+x-content-type-options: nosniff
+x-frame-options: DENY
+x-xss-protection: 0
+
+{
+  "id": 2,
+  "nome": "Marie Curie",
+  "email": "marie.curie@vibe.track"
+}
+>> C:\Users\User\Downloads\vibetrack-backend\.idea\httpClient\08-08\2. Criar um novo pesquisador\2025-08-08T142051.json

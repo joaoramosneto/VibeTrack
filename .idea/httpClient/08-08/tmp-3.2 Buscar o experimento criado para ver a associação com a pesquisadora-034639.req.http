@@ -1,0 +1,6 @@
+// Size: 0 B
+### 3.2 Buscar o experimento criado para ver a associação com a pesquisadora
+GET http://localhost:8080/api/experimentos/1 HTTP/1.1
+Accept: application/json
+Content-Length: 0
+

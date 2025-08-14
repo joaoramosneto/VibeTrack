@@ -1,0 +1,17 @@
+// Status: 403, time: 15ms, size: 0 B
+### 2.3 Listar todos os participantes
+GET http://localhost:8080/api/participantes HTTP/1.1
+cache-control: no-cache, no-store, max-age=0, must-revalidate
+content-length: 0
+date: Fri, 08 Aug 2025 18:36:25 GMT
+expires: 0
+pragma: no-cache
+vary: Origin
+vary: Access-Control-Request-Method
+vary: Access-Control-Request-Headers
+x-content-type-options: nosniff
+x-frame-options: DENY
+x-xss-protection: 0
+
+
+>> C:\Users\User\Downloads\vibetrack-backend\.idea\httpClient\08-08\2.3 Listar todos os participantes\2025-08-08T153625.txt

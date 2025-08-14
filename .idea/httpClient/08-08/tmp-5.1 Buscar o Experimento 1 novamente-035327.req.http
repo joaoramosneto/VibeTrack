@@ -1,0 +1,6 @@
+// Size: 0 B
+### 5.1 Buscar o Experimento 1 novamente
+GET http://localhost:8080/api/experimentos/1 HTTP/1.1
+Accept: application/json
+Content-Length: 0
+

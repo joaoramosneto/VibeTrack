@@ -1,0 +1,18 @@
+// Status: 403, time: 14ms, size: 0 B
+### 4.1 Adicionar Charles Babbage (ID 1) ao Experimento 1
+POST http://localhost:8080/api/experimentos/1/participantes/1 HTTP/1.1
+cache-control: no-cache, no-store, max-age=0, must-revalidate
+content-length: 0
+date: Fri, 08 Aug 2025 18:37:05 GMT
+expires: 0
+pragma: no-cache
+set-cookie: JSESSIONID=EAE54511EB9E1C4C39C43A1203F3A75B; Path=/; HttpOnly
+vary: Origin
+vary: Access-Control-Request-Method
+vary: Access-Control-Request-Headers
+x-content-type-options: nosniff
+x-frame-options: DENY
+x-xss-protection: 0
+
+
+>> C:\Users\User\Downloads\vibetrack-backend\.idea\httpClient\08-08\4.1 Adicionar Charles Babbage (ID 1) ao Experimento 1\2025-08-08T153705.txt

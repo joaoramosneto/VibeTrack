@@ -1,0 +1,14 @@
+{
+  "id": 1,
+  "nome": "Teste Inicial",
+  "descricao": "Experimento para testar a API",
+  "dataInicio": "2025-08-01",
+  "dataFim": "2025-08-10",
+  "statusExperimento": "PLANEJADO",
+  "pesquisador": {
+    "id": 1,
+    "nome": "Dr. Ada Lovelace",
+    "email": "ada.lovelace@vibe.track"
+  },
+  "participantes": []
+}

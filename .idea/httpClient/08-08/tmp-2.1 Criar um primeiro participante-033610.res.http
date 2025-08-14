@@ -1,0 +1,18 @@
+// Status: 403, time: 14ms, size: 0 B
+### 2.1 Criar um primeiro participante
+POST http://localhost:8080/api/participantes HTTP/1.1
+cache-control: no-cache, no-store, max-age=0, must-revalidate
+content-length: 0
+date: Fri, 08 Aug 2025 18:36:10 GMT
+expires: 0
+pragma: no-cache
+set-cookie: JSESSIONID=FD834F506226A2F1CEE9EE51B989A935; Path=/; HttpOnly
+vary: Origin
+vary: Access-Control-Request-Method
+vary: Access-Control-Request-Headers
+x-content-type-options: nosniff
+x-frame-options: DENY
+x-xss-protection: 0
+
+
+>> C:\Users\User\Downloads\vibetrack-backend\.idea\httpClient\08-08\2.1 Criar um primeiro participante\2025-08-08T153610.txt

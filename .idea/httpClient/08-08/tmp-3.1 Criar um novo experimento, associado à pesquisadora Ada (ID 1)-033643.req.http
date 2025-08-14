@@ -1,0 +1,13 @@
+// Size: 195 B
+### 3.1 Criar um novo experimento, associado à pesquisadora Ada (ID 1)
+POST http://localhost:8080/api/experimentos HTTP/1.1
+Content-Type: application/json
+Content-Length: 195
+
+{
+  "nome": "Teste de Lógica Diferencial",
+  "descricao": "Um teste para validar a primeira máquina analítica.",
+  "dataInicio": "2025-10-20",
+  "dataFim": "2025-10-30",
+  "pesquisadorId": 1
+}

@@ -1,0 +1,11 @@
+// Size: 113 B
+### 2.1 Criar um primeiro participante
+POST http://localhost:8080/api/participantes HTTP/1.1
+Content-Type: application/json
+Content-Length: 113
+
+{
+  "nomeCompleto": "Charles Babbage",
+  "email": "charles.babbage@email.com",
+  "dataNascimento": "1791-12-26"
+}

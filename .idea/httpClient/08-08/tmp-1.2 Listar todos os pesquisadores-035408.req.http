@@ -1,0 +1,6 @@
+// Size: 0 B
+### 1.2 Listar todos os pesquisadores
+GET http://localhost:8080/api/pesquisadores HTTP/1.1
+Accept: application/json
+Content-Length: 0
+

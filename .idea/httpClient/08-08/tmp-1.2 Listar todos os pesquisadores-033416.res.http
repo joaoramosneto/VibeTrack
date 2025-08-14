@@ -1,0 +1,24 @@
+// Status: 200, time: 438ms, size: 70 B
+### 1.2 Listar todos os pesquisadores
+GET http://localhost:8080/api/pesquisadores HTTP/1.1
+cache-control: no-cache, no-store, max-age=0, must-revalidate
+content-type: application/json
+date: Fri, 08 Aug 2025 18:34:16 GMT
+expires: 0
+pragma: no-cache
+transfer-encoding: chunked
+vary: Origin
+vary: Access-Control-Request-Method
+vary: Access-Control-Request-Headers
+x-content-type-options: nosniff
+x-frame-options: DENY
+x-xss-protection: 0
+
+[
+  {
+    "id": 1,
+    "nome": "Dr. Ada Lovelace",
+    "email": "ada.lovelace@vibe.track"
+  }
+]
+>> C:\Users\User\Downloads\vibetrack-backend\.idea\httpClient\08-08\1.2 Listar todos os pesquisadores\2025-08-08T153416.json
