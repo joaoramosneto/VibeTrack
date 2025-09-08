@@ -1,0 +1,12 @@
+// Size: 114 B
+### 3. Usar o token para criar um participante
+POST http://localhost:8080/api/participantes HTTP/1.1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJWaWJlVHJhY2sgQVBJIiwic3ViIjoiYWRhLmxvdmVsYWNlQHZpYmUudHJhY2siLCJleHAiOjE3NTU0NTY3ODZ9.h8fSiBiPmo692Ur03psJoQKmMBqhblTnRAH-NZL09ZI
+Content-Type: application/json
+Content-Length: 114
+
+{
+  "nomeCompleto": "John von Neumann",
+  "email": "john.vonneumann@email.com",
+  "dataNascimento": "1903-12-28"
+}

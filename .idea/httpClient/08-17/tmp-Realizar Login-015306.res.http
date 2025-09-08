@@ -1,0 +1,20 @@
+// Status: 200, time: 571ms, size: 222 B
+### Realizar Login
+POST http://localhost:8080/api/auth/login HTTP/1.1
+cache-control: no-cache, no-store, max-age=0, must-revalidate
+content-type: application/json
+date: Sun, 17 Aug 2025 16:53:06 GMT
+expires: 0
+pragma: no-cache
+transfer-encoding: chunked
+vary: Origin
+vary: Access-Control-Request-Method
+vary: Access-Control-Request-Headers
+x-content-type-options: nosniff
+x-xss-protection: 0
+
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJWaWJlVHJhY2sgQVBJIiwic3ViIjoiYWRhLmxvdmVsYWNlQHZpYmUudHJhY2siLCJleHAiOjE3NTU0NTY3ODZ9.h8fSiBiPmo692Ur03psJoQKmMBqhblTnRAH-NZL09ZI",
+  "nomeUsuario": "Dr. Ada Lovelace"
+}
+>> C:\Users\User\Downloads\vibetrack-backend\.idea\httpClient\08-17\Realizar Login\2025-08-17T135306.json

@@ -1,0 +1,11 @@
+// Size: 99 B
+### 1. Criar Pesquisador
+POST http://localhost:8080/api/pesquisadores HTTP/1.1
+Content-Type: application/json
+Content-Length: 99
+
+{
+  "nome": "Dr. Grace Hopper",
+  "email": "grace.hopper@vibe.track",
+  "senha": "COBOLrules1959"
+}

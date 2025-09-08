@@ -1,0 +1,16 @@
+// Status: 403, time: 371ms, size: 0 B
+### Realizar Login
+POST http://localhost:8080/api/auth/login HTTP/1.1
+cache-control: no-cache, no-store, max-age=0, must-revalidate
+content-length: 0
+date: Fri, 15 Aug 2025 18:58:55 GMT
+expires: 0
+pragma: no-cache
+vary: Origin
+vary: Access-Control-Request-Method
+vary: Access-Control-Request-Headers
+x-content-type-options: nosniff
+x-xss-protection: 0
+
+
+>> C:\Users\User\Downloads\vibetrack-backend\.idea\httpClient\08-15\Realizar Login\2025-08-15T155855.txt

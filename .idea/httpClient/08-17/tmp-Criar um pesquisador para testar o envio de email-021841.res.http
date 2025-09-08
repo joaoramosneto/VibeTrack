@@ -1,0 +1,21 @@
+// Status: 201, time: 925ms, size: 56 B
+### Criar um pesquisador para testar o envio de email
+POST http://localhost:8080/api/pesquisadores HTTP/1.1
+cache-control: no-cache, no-store, max-age=0, must-revalidate
+content-type: application/json
+date: Sun, 17 Aug 2025 17:18:40 GMT
+expires: 0
+pragma: no-cache
+transfer-encoding: chunked
+vary: Origin
+vary: Access-Control-Request-Method
+vary: Access-Control-Request-Headers
+x-content-type-options: nosniff
+x-xss-protection: 0
+
+{
+  "id": 1,
+  "nome": "sabão",
+  "email": "jjrmn190900@gmail.com"
+}
+>> C:\Users\User\Downloads\vibetrack-backend\.idea\httpClient\08-17\Criar um pesquisador para testar o envio de email\2025-08-17T141840.json

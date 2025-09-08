@@ -1,0 +1,22 @@
+// Status: 201, time: 197ms, size: 108 B
+### 3. Usar o token para criar um participante
+POST http://localhost:8080/api/participantes HTTP/1.1
+cache-control: no-cache, no-store, max-age=0, must-revalidate
+content-type: application/json
+date: Sun, 17 Aug 2025 16:54:55 GMT
+expires: 0
+pragma: no-cache
+transfer-encoding: chunked
+vary: Origin
+vary: Access-Control-Request-Method
+vary: Access-Control-Request-Headers
+x-content-type-options: nosniff
+x-xss-protection: 0
+
+{
+  "id": 1,
+  "nomeCompleto": "John von Neumann",
+  "email": "john.vonneumann@email.com",
+  "dataNascimento": "1903-12-28"
+}
+>> C:\Users\User\Downloads\vibetrack-backend\.idea\httpClient\08-17\3. Usar o token para criar um participante\2025-08-17T135455.json

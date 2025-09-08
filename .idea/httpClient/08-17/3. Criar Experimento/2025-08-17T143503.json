@@ -1,0 +1,14 @@
+{
+  "id": 1,
+  "nome": "Primeiro Compilador",
+  "descricao": "Desenvolvimento do compilador A-0.",
+  "dataInicio": "2025-09-01",
+  "dataFim": "2025-09-30",
+  "statusExperimento": "PLANEJADO",
+  "pesquisador": {
+    "id": 1,
+    "nome": "Dr. Grace Hopper",
+    "email": "grace.hopper@vibe.track"
+  },
+  "participantes": []
+}

@@ -1,0 +1,11 @@
+// Size: 94 B
+### Criar um pesquisador para testar o envio de email
+POST http://localhost:8080/api/pesquisadores HTTP/1.1
+Content-Type: application/json
+Content-Length: 94
+
+{
+  "nome": "sabão",
+  "email": "jjrmn190900@gmail.com",
+  "senha": "qualquerSenhaForte123"
+}

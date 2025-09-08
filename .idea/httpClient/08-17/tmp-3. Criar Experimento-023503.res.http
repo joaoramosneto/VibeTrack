@@ -1,0 +1,30 @@
+// Status: 201, time: 223ms, size: 269 B
+### 3. Criar Experimento
+POST http://localhost:8080/api/experimentos HTTP/1.1
+cache-control: no-cache, no-store, max-age=0, must-revalidate
+content-type: application/json
+date: Sun, 17 Aug 2025 17:35:03 GMT
+expires: 0
+pragma: no-cache
+transfer-encoding: chunked
+vary: Origin
+vary: Access-Control-Request-Method
+vary: Access-Control-Request-Headers
+x-content-type-options: nosniff
+x-xss-protection: 0
+
+{
+  "id": 1,
+  "nome": "Primeiro Compilador",
+  "descricao": "Desenvolvimento do compilador A-0.",
+  "dataInicio": "2025-09-01",
+  "dataFim": "2025-09-30",
+  "statusExperimento": "PLANEJADO",
+  "pesquisador": {
+    "id": 1,
+    "nome": "Dr. Grace Hopper",
+    "email": "grace.hopper@vibe.track"
+  },
+  "participantes": []
+}
+>> C:\Users\User\Downloads\vibetrack-backend\.idea\httpClient\08-17\3. Criar Experimento\2025-08-17T143503.json

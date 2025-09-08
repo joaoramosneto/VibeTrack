@@ -1,0 +1,11 @@
+// Size: 107 B
+### 1. CADASTRAR O PESQUISADOR PRIMEIRO
+POST http://localhost:8080/api/pesquisadores HTTP/1.1
+Content-Type: application/json
+Content-Length: 107
+
+{
+  "nome": "Dr. Ada Lovelace",
+  "email": "ada.lovelace@vibe.track",
+  "senha": "passwordSuperSegura123"
+}

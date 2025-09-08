@@ -1,0 +1,37 @@
+// Status: 200, time: 138ms, size: 377 B
+### 6. Verificar Associação
+GET http://localhost:8080/api/experimentos/1 HTTP/1.1
+cache-control: no-cache, no-store, max-age=0, must-revalidate
+content-type: application/json
+date: Sun, 17 Aug 2025 17:36:48 GMT
+expires: 0
+pragma: no-cache
+transfer-encoding: chunked
+vary: Origin
+vary: Access-Control-Request-Method
+vary: Access-Control-Request-Headers
+x-content-type-options: nosniff
+x-xss-protection: 0
+
+{
+  "id": 1,
+  "nome": "Primeiro Compilador",
+  "descricao": "Desenvolvimento do compilador A-0.",
+  "dataInicio": "2025-09-01",
+  "dataFim": "2025-09-30",
+  "statusExperimento": "PLANEJADO",
+  "pesquisador": {
+    "id": 1,
+    "nome": "Dr. Grace Hopper",
+    "email": "grace.hopper@vibe.track"
+  },
+  "participantes": [
+    {
+      "id": 1,
+      "nomeCompleto": "John von Neumann",
+      "email": "john.vonneumann@email.com",
+      "dataNascimento": "1903-12-28"
+    }
+  ]
+}
+>> C:\Users\User\Downloads\vibetrack-backend\.idea\httpClient\08-17\6. Verificar Associação\2025-08-17T143648.json
