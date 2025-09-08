@@ -78,3 +78,102 @@ POST http://localhost:8080/api/experimentos/1/participantes/1
 
 GET http://localhost:8080/api/experimentos/1
 Accept: application/json
+
+
+### Realizar Login
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "ada.lovelace@vibe.track",
+  "senha": "passwordSuperSegura123"
+}
+
+### 1. CADASTRAR O PESQUISADOR PRIMEIRO
+POST http://localhost:8080/api/pesquisadores
+Content-Type: application/json
+
+{
+  "nome": "Dr. Ada Lovelace",
+  "email": "ada.lovelace@vibe.track",
+  "senha": "passwordSuperSegura123"
+}
+
+### 3. Usar o token para criar um participante
+POST http://localhost:8080/api/participantes
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJWaWJlVHJhY2sgQVBJIiwic3ViIjoiYWRhLmxvdmVsYWNlQHZpYmUudHJhY2siLCJleHAiOjE3NTU0NTY3ODZ9.h8fSiBiPmo692Ur03psJoQKmMBqhblTnRAH-NZL09ZI
+
+{
+  "nomeCompleto": "John von Neumann",
+  "email": "john.vonneumann@email.com",
+  "dataNascimento": "1903-12-28"
+}
+
+### Criar um pesquisador para testar o envio de email
+POST http://localhost:8080/api/pesquisadores
+Content-Type: application/json
+
+{
+  "nome": "sabão",
+  "email": "jjrmn190900@gmail.com",
+  "senha": "qualquerSenhaForte123"
+}
+
+
+
+
+
+
+
+
+### 1. Criar Pesquisador
+POST http://localhost:8080/api/pesquisadores
+Content-Type: application/json
+
+{
+  "nome": "Dr. Grace Hopper",
+  "email": "grace.hopper@vibe.track",
+  "senha": "COBOLrules1959"
+}
+
+### 2. Fazer Login
+POST http://localhost:8080/api/auth/login
+Content-Type: application/json
+
+{
+  "email": "grace.hopper@vibe.track",
+  "senha": "COBOLrules1959"
+}
+
+### 3. Criar Experimento
+POST http://localhost:8080/api/experimentos
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJWaWJlVHJhY2sgQVBJIiwic3ViIjoiZ3JhY2UuaG9wcGVyQHZpYmUudHJhY2siLCJleHAiOjE3NTU0NTkyNjV9._gGphxSNXs7K8b5vocObcfBumZUHO_N8qK70nuR3HnQ
+
+{
+  "nome": "Primeiro Compilador",
+  "descricao": "Desenvolvimento do compilador A-0.",
+  "dataInicio": "2025-09-01",
+  "dataFim": "2025-09-30",
+  "pesquisadorId": 1
+}
+
+### 4. Criar Participante
+POST http://localhost:8080/api/participantes
+Content-Type: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJWaWJlVHJhY2sgQVBJIiwic3ViIjoiZ3JhY2UuaG9wcGVyQHZpYmUudHJhY2siLCJleHAiOjE3NTU0NTkyNjV9._gGphxSNXs7K8b5vocObcfBumZUHO_N8qK70nuR3HnQ
+
+{
+  "nomeCompleto": "John von Neumann",
+  "email": "john.vonneumann@email.com",
+  "dataNascimento": "1903-12-28"
+}
+
+### 5. Associar Participante ao Experimento
+POST http://localhost:8080/api/experimentos/1/participantes/1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJWaWJlVHJhY2sgQVBJIiwic3ViIjoiZ3JhY2UuaG9wcGVyQHZpYmUudHJhY2siLCJleHAiOjE3NTU0NTkyNjV9._gGphxSNXs7K8b5vocObcfBumZUHO_N8qK70nuR3HnQ
+
+### 6. Verificar Associação
+GET http://localhost:8080/api/experimentos/1
+Accept: application/json

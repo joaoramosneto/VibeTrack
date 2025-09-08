@@ -26,6 +26,9 @@ public class PesquisadorService {
     @Autowired
     private PasswordEncoder passwordEncoder; // Injeta o codificador de senhas
 
+    @Autowired
+    private EmailService emailService;
+
     @Transactional
     public PesquisadorResponseDTO criarPesquisador(PesquisadorRequestDTO requestDTO) {
         // Converte o DTO para a entidade
@@ -36,6 +39,8 @@ public class PesquisadorService {
 
         // Salva a entidade no banco
         Pesquisador novoPesquisador = pesquisadorRepository.save(pesquisador);
+
+        emailService.enviarEmailDeBoasVindas(novoPesquisador.getEmail(), novoPesquisador.getNome());
 
         // Retorna o DTO de resposta
         return pesquisadorMapper.toResponseDTO(novoPesquisador);
@@ -55,6 +60,7 @@ public class PesquisadorService {
                 .orElseThrow(() -> new EntityNotFoundException("Pesquisador com ID " + id + " não encontrado."));
         return pesquisadorMapper.toResponseDTO(pesquisador);
     }
+
 
     // Métodos para atualizar e deletar podem ser adicionados aqui seguindo o mesmo padrão...
 }
