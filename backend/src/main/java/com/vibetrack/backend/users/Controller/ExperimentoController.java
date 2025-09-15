@@ -5,7 +5,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.http.MediaType;
 import com.vibetrack.backend.users.DTO.ExperimentoRequestDTO;
 import com.vibetrack.backend.users.DTO.ExperimentoResponseDTO;
 import jakarta.validation.Valid;
@@ -21,11 +22,16 @@ public class ExperimentoController {
     @Autowired
     private ExperimentoService experimentoService;
 
-    @PostMapping
-    public ResponseEntity<ExperimentoResponseDTO> criarExperimento(@Valid @RequestBody ExperimentoRequestDTO requestDTO) {
-        ExperimentoResponseDTO responseDTO = experimentoService.salvar(requestDTO);
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ExperimentoResponseDTO> criarExperimento(
+            @RequestPart("experimento") @Valid ExperimentoRequestDTO requestDTO,
+            @RequestPart(value = "midia", required = false) MultipartFile midiaFile) {
+
+        // Agora, o service precisa de um método que aceite os dados E o arquivo
+        ExperimentoResponseDTO responseDTO = experimentoService.salvarComMidia(requestDTO, midiaFile);
         return ResponseEntity.status(HttpStatus.CREATED).body(responseDTO);
     }
+
     @PostMapping("/{idExperimento}/participantes/{idParticipante}")
     public ResponseEntity<Void> adicionarParticipanteAoExperimento(
             @PathVariable Long idExperimento,
