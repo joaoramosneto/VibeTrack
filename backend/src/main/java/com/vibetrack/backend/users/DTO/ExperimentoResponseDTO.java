@@ -16,5 +16,6 @@ public record ExperimentoResponseDTO(
         LocalDate dataFim,
         StatusExperimento statusExperimento,
         PesquisadorResponseDTO pesquisador,
-        Set<ParticipanteResponseDTO> participantes // Usando Set para ser consistente com a Entidade
+        Set<ParticipanteResponseDTO> participantes,
+        String urlMidia // <-- ADICIONE APENAS ESTA LINHA
 ) {}

@@ -1,4 +1,3 @@
-// ExperimentoService.java (versão completa)
 package com.vibetrack.backend.users.Service;
 
 import com.vibetrack.backend.users.DTO.ExperimentoRequestDTO;
@@ -13,7 +12,8 @@ import com.vibetrack.backend.users.Repository.PesquisadorRepository;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional; // Importe esta anotação
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile; // NOVO IMPORT
 
 import java.util.List;
 
@@ -29,61 +29,84 @@ public class ExperimentoService {
     @Autowired
     private ExperimentoMapper experimentoMapper;
 
+    // NOVO MÉTODO PARA LIDAR COM UPLOAD DE MÍDIA
     @Transactional
-    public ExperimentoResponseDTO salvar(ExperimentoRequestDTO requestDTO) {
-        // 1. Busca a entidade Pesquisador pelo ID recebido no DTO
+    public ExperimentoResponseDTO salvarComMidia(ExperimentoRequestDTO requestDTO, MultipartFile midiaFile) {
+        // 1. Reutilizamos a mesma lógica de validação e busca do seu método salvar original
         Pesquisador pesquisador = pesquisadorRepository.findById(requestDTO.pesquisadorId())
                 .orElseThrow(() -> new EntityNotFoundException("Pesquisador com ID " + requestDTO.pesquisadorId() + " não encontrado."));
 
-        // Validação da regra de negócio
         if (requestDTO.dataInicio().isAfter(requestDTO.dataFim())) {
             throw new IllegalArgumentException("A data de início não pode ser depois da data de fim.");
         }
 
-        // 2. Converte o DTO para a Entidade Experimento
         Experimento experimento = experimentoMapper.toEntity(requestDTO);
-
-        // 3. ASSOCIA o pesquisador encontrado ao novo experimento
         experimento.setPesquisadorResponsavel(pesquisador);
 
-        // 4. Salva o experimento já com a associação
+        // 2. Lógica para salvar a mídia, se ela foi enviada
+        if (midiaFile != null && !midiaFile.isEmpty()) {
+            // TODO: Implementar a lógica para salvar o arquivo
+            // Isso geralmente envolve chamar um outro serviço (ex: FileStorageService)
+            // que salva o arquivo em uma pasta no servidor ou em um serviço de nuvem (como AWS S3)
+            // e retorna o caminho ou a URL do arquivo.
+            // Por enquanto, vamos apenas imprimir no console para confirmar que o arquivo chegou.
+            System.out.println("Arquivo de mídia recebido: " + midiaFile.getOriginalFilename());
+            System.out.println("Tamanho do arquivo: " + midiaFile.getSize() + " bytes");
+
+            // Exemplo de como você associaria a mídia ao experimento (requer entidade Midia):
+            // Midia midiaSalva = fileStorageService.salvar(midiaFile);
+            // experimento.addMidia(midiaSalva);
+        }
+
+        // 3. Salva a entidade Experimento no banco de dados
         Experimento experimentoSalvo = experimentoRepository.save(experimento);
 
-        // 5. Retorna o DTO de resposta
+        // 4. Converte a entidade salva para um DTO de resposta e retorna
         return experimentoMapper.toResponseDTO(experimentoSalvo);
     }
 
+
+    // SEU MÉTODO ANTIGO CONTINUA AQUI (pode ser útil no futuro ou pode ser removido)
+    @Transactional
+    public ExperimentoResponseDTO salvar(ExperimentoRequestDTO requestDTO) {
+        Pesquisador pesquisador = pesquisadorRepository.findById(requestDTO.pesquisadorId())
+                .orElseThrow(() -> new EntityNotFoundException("Pesquisador com ID " + requestDTO.pesquisadorId() + " não encontrado."));
+
+        if (requestDTO.dataInicio().isAfter(requestDTO.dataFim())) {
+            throw new IllegalArgumentException("A data de início não pode ser depois da data de fim.");
+        }
+
+        Experimento experimento = experimentoMapper.toEntity(requestDTO);
+        experimento.setPesquisadorResponsavel(pesquisador);
+        Experimento experimentoSalvo = experimentoRepository.save(experimento);
+        return experimentoMapper.toResponseDTO(experimentoSalvo);
+    }
+
+    // O RESTO DOS SEUS MÉTODOS CONTINUAM IGUAIS
     @Transactional(readOnly = true)
     public List<ExperimentoResponseDTO> buscarTodos() {
-        // CORREÇÃO: Converter a lista de Entidades para uma lista de DTOs
         List<Experimento> experimentos = experimentoRepository.findAll();
         return experimentoMapper.toResponseDTOList(experimentos);
     }
 
     @Transactional(readOnly = true)
-    public ExperimentoResponseDTO buscarPorId(Long id) { // CORREÇÃO: Retornar DTO para consistência
+    public ExperimentoResponseDTO buscarPorId(Long id) {
         Experimento experimento = experimentoRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Experimento com ID " + id + " não encontrado."));
-        // CORREÇÃO: Converter a Entidade encontrada para DTO
         return experimentoMapper.toResponseDTO(experimento);
     }
 
     @Transactional
-    public ExperimentoResponseDTO atualizar(Long id, ExperimentoRequestDTO requestDTO) { // CORREÇÃO: Receber DTO
-        // 1. Busca o experimento existente.
+    public ExperimentoResponseDTO atualizar(Long id, ExperimentoRequestDTO requestDTO) {
         Experimento experimentoExistente = experimentoRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Experimento com ID " + id + " não encontrado."));
 
-        // 2. Atualiza os campos do objeto existente com os novos dados do DTO.
         experimentoExistente.setNome(requestDTO.nome());
         experimentoExistente.setDescricao(requestDTO.descricao());
         experimentoExistente.setDataInicio(requestDTO.dataInicio());
         experimentoExistente.setDataFim(requestDTO.dataFim());
 
-        // 3. Salva o objeto atualizado.
         Experimento experimentoAtualizado = experimentoRepository.save(experimentoExistente);
-
-        // 4. Retorna o DTO correspondente
         return experimentoMapper.toResponseDTO(experimentoAtualizado);
     }
 
@@ -97,21 +120,13 @@ public class ExperimentoService {
 
     @Transactional
     public void adicionarParticipante(Long idExperimento, Long idParticipante) {
-        // 1. Busca a entidade Experimento no banco.
-        // Usamos o método que já existe. Ele já lança EntityNotFoundException se não encontrar.
         Experimento experimento = experimentoRepository.findById(idExperimento)
-               .orElseThrow(() -> new EntityNotFoundException("Experimento com ID " + idExperimento + " não encontrado."));
+                .orElseThrow(() -> new EntityNotFoundException("Experimento com ID " + idExperimento + " não encontrado."));
 
-        // 2. Busca a entidade Participante no banco.
         Participante participante = participanteRepository.findById(idParticipante)
                 .orElseThrow(() -> new EntityNotFoundException("Participante com ID " + idParticipante + " não encontrado."));
 
-        // 3. A MÁGICA: Adiciona o participante ao conjunto (Set) de participantes do experimento.
         experimento.getParticipantes().add(participante);
-
-        // 4. Salva o experimento. Como o método é @Transactional, o Hibernate
-        // entende que a coleção de participantes foi modificada e automaticamente
-        // insere a nova linha na tabela de junção (experimento_participantes).
         experimentoRepository.save(experimento);
     }
 }
