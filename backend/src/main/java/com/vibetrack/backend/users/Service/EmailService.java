@@ -42,4 +42,60 @@ public class EmailService {
             System.err.println("Erro ao enviar email de boas-vindas: " + e.getMessage());
         }
     }
+
+    //    ↓↓↓ COLE ESTE NOVO MÉTODO DENTRO DA SUA CLASSE EmailService ↓↓↓
+
+    @Async
+    public void enviarEmailConfirmacaoExperimento(String paraEmail, String nomePesquisador, String nomeExperimento) {
+        try {
+            SimpleMailMessage mensagem = new SimpleMailMessage();
+            mensagem.setFrom(fromEmail);
+            mensagem.setTo(paraEmail);
+            mensagem.setSubject("VibeTrack: Experimento Cadastrado com Sucesso!");
+
+            String texto = String.format(
+                    "Olá, %s!\n\nSeu experimento \"%s\" foi cadastrado com sucesso na plataforma VibeTrack.\n\n" +
+                            "Você já pode visualizar os detalhes e adicionar participantes.\n\n" +
+                            "Atenciosamente,\nA Equipe VibeTrack",
+                    nomePesquisador,
+                    nomeExperimento
+            );
+
+            mensagem.setText(texto);
+            mailSender.send(mensagem);
+
+            System.out.println("Email de confirmação de experimento enviado para: " + paraEmail);
+
+        } catch (Exception e) {
+            System.err.println("Erro ao enviar email de confirmação de experimento: " + e.getMessage());
+        }
+    }
+    //    ↓↓↓ ADICIONE ESTE MÉTODO NO SEU EmailService.java ↓↓↓
+
+    @Async
+    public void enviarEmailDeVerificacao(String paraEmail, String nomeUsuario, String codigo) {
+        try {
+            SimpleMailMessage mensagem = new SimpleMailMessage();
+            mensagem.setFrom(fromEmail);
+            mensagem.setTo(paraEmail);
+            mensagem.setSubject("VibeTrack - Seu Código de Verificação");
+
+            String texto = String.format(
+                    "Olá, %s!\n\nSeu cadastro na plataforma VibeTrack está quase completo.\n\n" +
+                            "Use o código abaixo para ativar sua conta. Este código é válido por 15 minutos.\n\n" +
+                            "Seu código de verificação é: %s\n\n" +
+                            "Atenciosamente,\nA Equipe VibeTrack",
+                    nomeUsuario,
+                    codigo
+            );
+
+            mensagem.setText(texto);
+            mailSender.send(mensagem);
+
+            System.out.println("Email de verificação enviado para: " + paraEmail);
+
+        } catch (Exception e) {
+            System.err.println("Erro ao enviar email de verificação: " + e.getMessage());
+        }
+    }
 }

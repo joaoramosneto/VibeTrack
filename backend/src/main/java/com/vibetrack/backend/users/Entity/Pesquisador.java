@@ -1,39 +1,36 @@
 package com.vibetrack.backend.users.Entity;
 
-import jakarta.persistence.*; // Para JPA Jakarta EE (Spring Boot 3+)
+import jakarta.persistence.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-// import javax.persistence.*; // Para JPA legada (Spring Boot 2.x)
+
+import java.time.LocalDateTime; // <-- NOVO IMPORT
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 @Entity
-@Table(name = "pesquisadores") // Define o nome da tabela no banco de dados
+@Table(name = "pesquisadores")
 public class Pesquisador implements UserDetails {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY) // Autoincremento pelo banco
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @Column(nullable = false)
     private String nome;
 
-    @Column(nullable = false, unique = true) // Email deve ser único
+    @Column(nullable = false, unique = true)
     private String email;
 
     @Column(nullable = false)
-    private String senha; // Lembre-se de criptografar antes de salvar!
+    private String senha;
 
-    // Exemplo de relacionamento (se você tiver uma entidade Papel/Role)
-    // @ManyToMany(fetch = FetchType.EAGER)
-    // @JoinTable(
-    // name = "pesquisador_papeis",
-    // joinColumns = @JoinColumn(name = "pesquisador_id"),
-    // inverseJoinColumns = @JoinColumn(name = "papel_id")
-    // )
-    // private Set<Papel> papeis;
+    // vvv CAMPOS NOVOS PARA VERIFICAÇÃO DE EMAIL vvv
+    private boolean ativo;
+    private String codigoVerificacao;
+    private LocalDateTime codigoVerificacaoExpiracao;
+    // ^^^ FIM DOS CAMPOS NOVOS ^^^
 
     // Construtores
     public Pesquisador() {
@@ -43,9 +40,11 @@ public class Pesquisador implements UserDetails {
         this.nome = nome;
         this.email = email;
         this.senha = senha;
+        this.ativo = false; // MODIFICADO: Todo novo pesquisador começa como inativo
     }
 
-    // Getters e Setters
+    // Getters e Setters (incluindo os novos)
+
     public Long getId() {
         return id;
     }
@@ -78,61 +77,74 @@ public class Pesquisador implements UserDetails {
         this.senha = senha;
     }
 
+    // vvv GETTERS E SETTERS PARA OS NOVOS CAMPOS vvv
+    public boolean isAtivo() {
+        return ativo;
+    }
+
+    public void setAtivo(boolean ativo) {
+        this.ativo = ativo;
+    }
+
+    public String getCodigoVerificacao() {
+        return codigoVerificacao;
+    }
+
+    public void setCodigoVerificacao(String codigoVerificacao) {
+        this.codigoVerificacao = codigoVerificacao;
+    }
+
+    public LocalDateTime getCodigoVerificacaoExpiracao() {
+        return codigoVerificacaoExpiracao;
+    }
+
+    public void setCodigoVerificacaoExpiracao(LocalDateTime codigoVerificacaoExpiracao) {
+        this.codigoVerificacaoExpiracao = codigoVerificacaoExpiracao;
+    }
+    // ^^^ FIM DOS GETTERS E SETTERS NOVOS ^^^
+
+
+    // --- MÉTODOS DO UserDetails ---
+
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        // 2. Define os "papéis" ou "permissões" do usuário.
         // Por enquanto, todo pesquisador terá o papel "ROLE_USER".
+        // Futuramente, você pode carregar isso de uma tabela de Papeis/Roles.
         return List.of(new SimpleGrantedAuthority("ROLE_USER"));
     }
 
     @Override
     public String getPassword() {
-        // 3. Retorna a senha (já criptografada)
         return this.senha;
     }
 
     @Override
     public String getUsername() {
-        // 4. Retorna o campo que será usado como "username" para o login.
-        // No nosso caso, é o email.
         return this.email;
     }
 
     @Override
     public boolean isAccountNonExpired() {
-        // 5. Indica se a conta não expirou.
-        return true; // Deixamos true por padrão
+        return true;
     }
+
+
 
     @Override
     public boolean isAccountNonLocked() {
-        // 6. Indica se a conta não está bloqueada.
-        return true; // Deixamos true por padrão
+        return true;
     }
 
     @Override
     public boolean isCredentialsNonExpired() {
-        // 7. Indica se as credenciais (senha) não expiraram.
-        return true; // Deixamos true por padrão
+        return true;
     }
 
     @Override
     public boolean isEnabled() {
-        // 8. Indica se a conta está ativa.
-        // (Futuramente, podemos usar isso para a confirmação de email)
-        return true; // Deixamos true por padrão
+        // MODIFICAÇÃO MAIS IMPORTANTE:
+        // Agora, o Spring Security vai considerar a conta ativa
+        // apenas se o nosso campo 'ativo' for 'true'.
+        return this.ativo;
     }
-
-    // Getters e Setters para 'papeis' se você adicionar
-    // public Set<Papel> getPapeis() {
-    //     return papeis;
-    // }
-
-    // public void setPapeis(Set<Papel> papeis) {
-    //     this.papeis = papeis;
-    // }
-
-    // É uma boa prática adicionar equals() e hashCode() se você for trabalhar
-    // com estas entidades em coleções ou se elas forem desanexadas e reanexadas
-    // pelo EntityManager. Para simplificar, omiti por agora.
 }

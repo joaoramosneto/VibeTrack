@@ -31,22 +31,22 @@ public class SecurityConfig {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        // We start a single, continuous chain of configurations.
         return http
-                .csrf(csrf -> csrf.disable()) // Desabilita CSRF para APIs stateless
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // Não cria sessões
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
                         // AQUI definimos as rotas PÚBLICAS
                         .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/pesquisadores").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/verificar-codigo").permitAll() // <-- LINHA ADICIONADA
                         .requestMatchers("/h2-console/**").permitAll()
 
                         // QUALQUER OUTRA ROTA exige autenticação
                         .anyRequest().authenticated()
                 )
-                .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class) // Nosso filtro de token entra em ação
-                .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable())) // Sintaxe corrigida para o H2 Console
-                .build(); // Constrói e retorna o SecurityFilterChain
+                .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
+                .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable()))
+                .build();
     }
 
     @Bean
