@@ -1,0 +1,20 @@
+// Status: 200, time: 134ms, size: 222 B
+### 2. Fazer Login
+POST http://localhost:8080/api/auth/login HTTP/1.1
+cache-control: no-cache, no-store, max-age=0, must-revalidate
+content-type: application/json
+date: Mon, 08 Sep 2025 21:58:49 GMT
+expires: 0
+pragma: no-cache
+transfer-encoding: chunked
+vary: Origin
+vary: Access-Control-Request-Method
+vary: Access-Control-Request-Headers
+x-content-type-options: nosniff
+x-xss-protection: 0
+
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJWaWJlVHJhY2sgQVBJIiwic3ViIjoiZ3JhY2UuaG9wcGVyQHZpYmUudHJhY2siLCJleHAiOjE3NTczNzU5Mjl9.ny1JNhurvTFJ4sLdvKitKJzNg4pGzyI-pwc3U5E8nHE",
+  "nomeUsuario": "Dr. Grace Hopper"
+}
+>> C:\Users\User\Downloads\vibetrack-backend\.idea\httpClient\09-08\2. Fazer Login\2025-09-08T185849.json

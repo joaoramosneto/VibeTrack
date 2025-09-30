@@ -1,0 +1,21 @@
+// Status: 201, time: 126ms, size: 68 B
+### 1. Criar Pesquisador
+POST http://localhost:8080/api/pesquisadores HTTP/1.1
+cache-control: no-cache, no-store, max-age=0, must-revalidate
+content-type: application/json
+date: Mon, 08 Sep 2025 21:58:47 GMT
+expires: 0
+pragma: no-cache
+transfer-encoding: chunked
+vary: Origin
+vary: Access-Control-Request-Method
+vary: Access-Control-Request-Headers
+x-content-type-options: nosniff
+x-xss-protection: 0
+
+{
+  "id": 2,
+  "nome": "Dr. Grace Hopper",
+  "email": "grace.hopper@vibe.track"
+}
+>> C:\Users\User\Downloads\vibetrack-backend\.idea\httpClient\09-08\1. Criar Pesquisador\2025-09-08T185847.json
