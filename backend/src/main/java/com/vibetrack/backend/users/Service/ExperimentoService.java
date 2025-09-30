@@ -13,7 +13,7 @@ import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile; // NOVO IMPORT
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -29,10 +29,12 @@ public class ExperimentoService {
     @Autowired
     private ExperimentoMapper experimentoMapper;
 
-    // NOVO MÉTODO PARA LIDAR COM UPLOAD DE MÍDIA
+    // vvvv PASSO 1: INJETAR O SERVIÇO DE EMAIL vvvv
+    @Autowired
+    private EmailService emailService;
+
     @Transactional
     public ExperimentoResponseDTO salvarComMidia(ExperimentoRequestDTO requestDTO, MultipartFile midiaFile) {
-        // 1. Reutilizamos a mesma lógica de validação e busca do seu método salvar original
         Pesquisador pesquisador = pesquisadorRepository.findById(requestDTO.pesquisadorId())
                 .orElseThrow(() -> new EntityNotFoundException("Pesquisador com ID " + requestDTO.pesquisadorId() + " não encontrado."));
 
@@ -43,30 +45,27 @@ public class ExperimentoService {
         Experimento experimento = experimentoMapper.toEntity(requestDTO);
         experimento.setPesquisadorResponsavel(pesquisador);
 
-        // 2. Lógica para salvar a mídia, se ela foi enviada
         if (midiaFile != null && !midiaFile.isEmpty()) {
-            // TODO: Implementar a lógica para salvar o arquivo
-            // Isso geralmente envolve chamar um outro serviço (ex: FileStorageService)
-            // que salva o arquivo em uma pasta no servidor ou em um serviço de nuvem (como AWS S3)
-            // e retorna o caminho ou a URL do arquivo.
-            // Por enquanto, vamos apenas imprimir no console para confirmar que o arquivo chegou.
             System.out.println("Arquivo de mídia recebido: " + midiaFile.getOriginalFilename());
             System.out.println("Tamanho do arquivo: " + midiaFile.getSize() + " bytes");
-
-            // Exemplo de como você associaria a mídia ao experimento (requer entidade Midia):
-            // Midia midiaSalva = fileStorageService.salvar(midiaFile);
-            // experimento.addMidia(midiaSalva);
+            // TODO: Implementar a lógica real de salvamento do arquivo
         }
 
-        // 3. Salva a entidade Experimento no banco de dados
         Experimento experimentoSalvo = experimentoRepository.save(experimento);
 
-        // 4. Converte a entidade salva para um DTO de resposta e retorna
+        // vvvv PASSO 2: CHAMAR O SERVIÇO DE EMAIL AQUI vvvv
+        // Dispara o email de confirmação em segundo plano
+        emailService.enviarEmailConfirmacaoExperimento(
+                pesquisador.getEmail(),
+                pesquisador.getNome(),
+                experimentoSalvo.getNome()
+        );
+        // ^^^^ FIM DA CHAMADA ^^^^
+
         return experimentoMapper.toResponseDTO(experimentoSalvo);
     }
 
-
-    // SEU MÉTODO ANTIGO CONTINUA AQUI (pode ser útil no futuro ou pode ser removido)
+    // O resto dos seus métodos continuam exatamente como estavam antes
     @Transactional
     public ExperimentoResponseDTO salvar(ExperimentoRequestDTO requestDTO) {
         Pesquisador pesquisador = pesquisadorRepository.findById(requestDTO.pesquisadorId())
@@ -79,10 +78,17 @@ public class ExperimentoService {
         Experimento experimento = experimentoMapper.toEntity(requestDTO);
         experimento.setPesquisadorResponsavel(pesquisador);
         Experimento experimentoSalvo = experimentoRepository.save(experimento);
+
+        // Também vamos adicionar o envio de email aqui, para o caso de este método ser usado
+        emailService.enviarEmailConfirmacaoExperimento(
+                pesquisador.getEmail(),
+                pesquisador.getNome(),
+                experimentoSalvo.getNome()
+        );
+
         return experimentoMapper.toResponseDTO(experimentoSalvo);
     }
 
-    // O RESTO DOS SEUS MÉTODOS CONTINUAM IGUAIS
     @Transactional(readOnly = true)
     public List<ExperimentoResponseDTO> buscarTodos() {
         List<Experimento> experimentos = experimentoRepository.findAll();

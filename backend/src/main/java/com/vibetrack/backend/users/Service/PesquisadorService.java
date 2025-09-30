@@ -11,6 +11,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime; // NOVO IMPORT
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -24,27 +25,47 @@ public class PesquisadorService {
     private PesquisadorMapper pesquisadorMapper;
 
     @Autowired
-    private PasswordEncoder passwordEncoder; // Injeta o codificador de senhas
+    private PasswordEncoder passwordEncoder;
 
     @Autowired
     private EmailService emailService;
 
+    // vvvvv MÉTODO MODIFICADO vvvvv
     @Transactional
     public PesquisadorResponseDTO criarPesquisador(PesquisadorRequestDTO requestDTO) {
+        // Verificação para ver se o email já existe
+        // Apenas mudamos a forma de verificar se o pesquisador foi encontrado
+        if (pesquisadorRepository.findByEmail(requestDTO.email()) != null) {
+            throw new IllegalArgumentException("Este email já está em uso.");
+        }
+
         // Converte o DTO para a entidade
         Pesquisador pesquisador = pesquisadorMapper.toEntity(requestDTO);
 
-        // CRIPTOGRAFA A SENHA ANTES DE SALVAR
+        // Criptografa a senha antes de salvar
         pesquisador.setSenha(passwordEncoder.encode(requestDTO.senha()));
+
+        // --- LÓGICA NOVA PARA VERIFICAÇÃO ---
+        // 1. Gera um código de 6 dígitos aleatório
+        String codigo = String.format("%06d", new java.util.Random().nextInt(999999));
+
+        // 2. Define o código e a data de expiração (ex: 15 minutos a partir de agora)
+        pesquisador.setCodigoVerificacao(codigo);
+        pesquisador.setCodigoVerificacaoExpiracao(LocalDateTime.now().plusMinutes(15));
+        pesquisador.setAtivo(false); // O usuário começa como inativo
+        // --- FIM DA LÓGICA NOVA ---
 
         // Salva a entidade no banco
         Pesquisador novoPesquisador = pesquisadorRepository.save(pesquisador);
 
-        emailService.enviarEmailDeBoasVindas(novoPesquisador.getEmail(), novoPesquisador.getNome());
+        // Dispara o email com o código de verificação
+        // (Vamos criar este método no EmailService no próximo passo)
+        emailService.enviarEmailDeVerificacao(novoPesquisador.getEmail(), novoPesquisador.getNome(), codigo);
 
         // Retorna o DTO de resposta
         return pesquisadorMapper.toResponseDTO(novoPesquisador);
     }
+    // ^^^^^ MÉTODO MODIFICADO ^^^^^
 
     @Transactional(readOnly = true)
     public List<PesquisadorResponseDTO> listarTodosPesquisadores() {
@@ -61,6 +82,27 @@ public class PesquisadorService {
         return pesquisadorMapper.toResponseDTO(pesquisador);
     }
 
+    //    ↓↓↓ ADICIONE ESTE MÉTODO NO SEU PesquisadorService.java ↓↓↓
 
-    // Métodos para atualizar e deletar podem ser adicionados aqui seguindo o mesmo padrão...
+    @Transactional
+    public void verificarCodigoEAtivarConta(String codigo) {
+        // 1. Procura um pesquisador que tenha este código de verificação
+        Pesquisador pesquisador = pesquisadorRepository.findByCodigoVerificacao(codigo)
+                .orElseThrow(() -> new EntityNotFoundException("Código de verificação inválido."));
+
+        // 2. Verifica se o código já expirou
+        if (pesquisador.getCodigoVerificacaoExpiracao().isBefore(java.time.LocalDateTime.now())) {
+            // Opcional: aqui você poderia gerar um novo código e reenviar o email
+            throw new IllegalArgumentException("Código de verificação expirado. Por favor, solicite um novo.");
+        }
+
+        // 3. Se o código é válido e não expirou, ativa a conta
+        pesquisador.setAtivo(true);
+        // Limpa os campos de verificação para segurança
+        pesquisador.setCodigoVerificacao(null);
+        pesquisador.setCodigoVerificacaoExpiracao(null);
+
+        // 4. Salva as alterações no banco de dados
+        pesquisadorRepository.save(pesquisador);
+    }
 }
