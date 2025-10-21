@@ -5,7 +5,11 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-@SpringBootTest // Esta anotação é crucial, ela carrega o contexto completo do Spring Boot para o teste
+import org.springframework.test.context.ActiveProfiles;
+
+@SpringBootTest
+// Esta anotação é crucial, ela carrega o contexto completo do Spring Boot para o teste
+@ActiveProfiles("dev")
 class VibetrackBackendApplicationTests {
 
     @Test // Indica que este é um método de teste

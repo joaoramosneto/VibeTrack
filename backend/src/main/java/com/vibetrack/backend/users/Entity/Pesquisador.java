@@ -26,6 +26,9 @@ public class Pesquisador implements UserDetails {
     @Column(nullable = false)
     private String senha;
 
+    @Column(name = "foto_url") // Define o nome da coluna no banco de dados
+    private String fotoUrl;
+
     // vvv CAMPOS NOVOS PARA VERIFICAÇÃO DE EMAIL vvv
     private boolean ativo;
     private String codigoVerificacao;
@@ -44,6 +47,13 @@ public class Pesquisador implements UserDetails {
     }
 
     // Getters e Setters (incluindo os novos)
+    public String getFotoUrl() {
+        return fotoUrl;
+    }
+
+    public void setFotoUrl(String fotoUrl) {
+        this.fotoUrl = fotoUrl;
+    }
 
     public Long getId() {
         return id;

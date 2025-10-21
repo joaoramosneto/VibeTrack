@@ -37,15 +37,21 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                         // AQUI definimos as rotas PÚBLICAS
                         .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/pesquisadores").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/auth/verificar-codigo").permitAll() // <-- LINHA ADICIONADA
+                        .requestMatchers(HttpMethod.POST, "/api/pesquisadores").permitAll() // Permite a CRIAÇÃO de um pesquisador
+                        .requestMatchers(HttpMethod.POST, "/api/auth/verificar-codigo").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/results").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
 
-                        // QUALQUER OUTRA ROTA exige autenticação
+                        // ✅ NOVA REGRA ADICIONADA AQUI
+                        // Permite que QUALQUER usuário AUTENTICADO acesse os outros endpoints de pesquisador
+                        // (como GET /me, POST /me/foto, etc.)
+                        .requestMatchers("/api/pesquisadores/**").authenticated()
+
+                        // QUALQUER OUTRA ROTA não listada acima exige autenticação
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
-                .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable()))
+                .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable())) // Necessário para o H2 console
                 .build();
     }
 

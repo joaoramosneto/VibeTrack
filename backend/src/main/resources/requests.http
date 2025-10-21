@@ -177,3 +177,49 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJWaWJlVHJhY
 ### 6. Verificar Associação
 GET http://localhost:8080/api/experimentos/1
 Accept: application/json
+
+
+
+### curl request
+/*
+curl -X POST http://localhost:8080/results \
+-H "Content-Type: application/json" \
+-d '{
+  "userId": "teste_direto_do_pc_01",
+  "deviceData": "Simulado via cURL",
+  "healthData": {
+    "steps": 350,
+    "heartRate": [
+      {
+        "timestamp": 1678886400000,
+        "value": 90
+      },
+      {
+        "timestamp": 1678886401000,
+        "value": 92
+      }
+    ]
+  }
+}'
+*/
+POST http://localhost:8080/results
+Content-Type: application/json
+
+{
+  "userId": "teste_direto_do_pc_01",
+  "deviceData": "Simulado via cURL",
+  "healthData": {
+    "steps": 350,
+    "heartRate": [
+      {
+        "timestamp": 1678886400000,
+        "value": 90
+      },
+      {
+        "timestamp": 1678886401000,
+        "value": 92
+      }
+    ]
+  }
+}
+

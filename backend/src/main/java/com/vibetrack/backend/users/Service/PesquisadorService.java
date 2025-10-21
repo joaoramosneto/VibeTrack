@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime; // NOVO IMPORT
 import java.util.List;
@@ -18,6 +19,8 @@ import java.util.stream.Collectors;
 @Service
 public class PesquisadorService {
 
+
+    private final FileStorageService fileStorageService;
     @Autowired
     private PesquisadorRepository pesquisadorRepository;
 
@@ -30,7 +33,24 @@ public class PesquisadorService {
     @Autowired
     private EmailService emailService;
 
-    // vvvvv MÉTODO MODIFICADO vvvvv
+
+    @Autowired
+    public PesquisadorService(PesquisadorRepository pesquisadorRepository, FileStorageService fileStorageService) {
+        this.pesquisadorRepository = pesquisadorRepository;
+        this.fileStorageService = fileStorageService;
+    }
+
+    public void atualizarFotoPerfil(Pesquisador pesquisadorLogado, MultipartFile file) {
+        // 1. Delega o armazenamento do arquivo para o FileStorageService
+        String nomeDoArquivo = fileStorageService.storeFile(file);
+
+        // 2. Atualiza a entidade com a nova URL/nome da foto
+        pesquisadorLogado.setFotoUrl(nomeDoArquivo);
+
+        // 3. Salva a entidade atualizada no banco de dados através do repositório
+        pesquisadorRepository.save(pesquisadorLogado);
+    }
+
     @Transactional
     public PesquisadorResponseDTO criarPesquisador(PesquisadorRequestDTO requestDTO) {
         // Verificação para ver se o email já existe
@@ -65,7 +85,7 @@ public class PesquisadorService {
         // Retorna o DTO de resposta
         return pesquisadorMapper.toResponseDTO(novoPesquisador);
     }
-    // ^^^^^ MÉTODO MODIFICADO ^^^^^
+
 
     @Transactional(readOnly = true)
     public List<PesquisadorResponseDTO> listarTodosPesquisadores() {

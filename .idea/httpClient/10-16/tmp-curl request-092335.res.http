@@ -1,0 +1,16 @@
+// Status: 403, time: 12,684ms, size: 0 B
+### curl request
+POST http://localhost:8080/results HTTP/1.1
+cache-control: no-cache, no-store, max-age=0, must-revalidate
+content-length: 0
+date: Fri, 17 Oct 2025 00:23:28 GMT
+expires: 0
+pragma: no-cache
+vary: Origin
+vary: Access-Control-Request-Method
+vary: Access-Control-Request-Headers
+x-content-type-options: nosniff
+x-xss-protection: 0
+
+
+>> C:\Users\User\Downloads\vibetrack-backend\.idea\httpClient\10-16\curl request\2025-10-16T212334.txt

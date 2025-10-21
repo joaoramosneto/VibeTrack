@@ -1,7 +1,12 @@
 package com.vibetrack.backend.users.Service;
 
+import com.vibetrack.backend.users.DTO.DashboardDTO.ChartDataDTO;
+import com.vibetrack.backend.users.DTO.DashboardDTO.DashboardDTO;
+import com.vibetrack.backend.users.DTO.DashboardDTO.LineChartDataDTO;
+import com.vibetrack.backend.users.DTO.DashboardDTO.LineChartDatasetDTO;
 import com.vibetrack.backend.users.DTO.ExperimentoRequestDTO;
 import com.vibetrack.backend.users.DTO.ExperimentoResponseDTO;
+import com.vibetrack.backend.users.Entity.Enums.StatusExperimento;
 import com.vibetrack.backend.users.Entity.Experimento;
 import com.vibetrack.backend.users.Entity.Participante;
 import com.vibetrack.backend.users.Entity.Pesquisador;
@@ -111,6 +116,7 @@ public class ExperimentoService {
         experimentoExistente.setDescricao(requestDTO.descricao());
         experimentoExistente.setDataInicio(requestDTO.dataInicio());
         experimentoExistente.setDataFim(requestDTO.dataFim());
+        experimentoExistente.setStatusExperimento(StatusExperimento.valueOf(requestDTO.statusExperimento()));
 
         Experimento experimentoAtualizado = experimentoRepository.save(experimentoExistente);
         return experimentoMapper.toResponseDTO(experimentoAtualizado);
@@ -134,5 +140,24 @@ public class ExperimentoService {
 
         experimento.getParticipantes().add(participante);
         experimentoRepository.save(experimento);
+    }
+
+    public DashboardDTO getDashboardDataMock(Long experimentoId) {
+        // Simula que estamos buscando um experimento
+        // Experimento experimento = experimentoRepository.findById(experimentoId).orElseThrow(...);
+
+        // Mock para o gráfico de Frequência Cardíaca (Linha)
+        var labelsTempo = List.of("0s", "10s", "20s", "30s", "40s", "50s", "60s");
+        var dadosBatimentos = List.of(72, 75, 74, 80, 85, 82, 78);
+        var datasetFrequencia = new LineChartDatasetDTO("Frequência Cardíaca (BPM)", dadosBatimentos);
+        var graficoFrequencia = new LineChartDataDTO(labelsTempo, List.of(datasetFrequencia));
+
+        // Mock para o gráfico de Distribuição de Emoções (Pizza)
+        var labelsEmocoes = List.of("Neutro", "Feliz", "Surpreso", "Triste");
+        var dadosContagem = List.of(150, 90, 45, 15); // Simula a contagem de frames/eventos
+        var graficoEmocoes = new ChartDataDTO(labelsEmocoes, dadosContagem);
+
+        // Junta tudo no DTO principal e retorna
+        return new DashboardDTO(graficoFrequencia, graficoEmocoes);
     }
 }

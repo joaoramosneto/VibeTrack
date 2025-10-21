@@ -1,0 +1,24 @@
+// Size: 289 B
+### curl request
+POST http://localhost:8080/results HTTP/1.1
+Content-Type: application/json
+Content-Length: 289
+
+{
+  "userId": "teste_direto_do_pc_01",
+  "deviceData": "Simulado via cURL",
+  "healthData": {
+    "steps": 350,
+    "heartRate": [
+      {
+        "timestamp": 1678886400000,
+        "value": 90
+      },
+      {
+        "timestamp": 1678886401000,
+        "value": 92
+      }
+    ]
+  }
+}
+

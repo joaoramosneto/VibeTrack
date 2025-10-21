@@ -1,0 +1,17 @@
+// Status: 200, time: 324ms, size: 28 B
+### curl request
+POST http://localhost:8080/results HTTP/1.1
+cache-control: no-cache, no-store, max-age=0, must-revalidate
+content-length: 28
+content-type: text/plain;charset=UTF-8
+date: Fri, 17 Oct 2025 00:30:56 GMT
+expires: 0
+pragma: no-cache
+vary: Origin
+vary: Access-Control-Request-Method
+vary: Access-Control-Request-Headers
+x-content-type-options: nosniff
+x-xss-protection: 0
+
+Dados recebidos com sucesso!
+>> C:\Users\User\Downloads\vibetrack-backend\.idea\httpClient\10-16\curl request\2025-10-16T213056.txt

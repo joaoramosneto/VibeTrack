@@ -1,0 +1,12 @@
+// Size: 114 B
+### 4. Criar Participante
+POST http://localhost:8080/api/participantes HTTP/1.1
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJWaWJlVHJhY2sgQVBJIiwic3ViIjoiZ3JhY2UuaG9wcGVyQHZpYmUudHJhY2siLCJleHAiOjE3NTU0NTkyNjV9._gGphxSNXs7K8b5vocObcfBumZUHO_N8qK70nuR3HnQ
+Content-Type: application/json
+Content-Length: 114
+
+{
+  "nomeCompleto": "John von Neumann",
+  "email": "john.vonneumann@email.com",
+  "dataNascimento": "1903-12-28"
+}

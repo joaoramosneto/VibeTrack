@@ -16,8 +16,8 @@ public interface ExperimentoMapper {
     @Mapping(target = "dataCriacao", ignore = true) // Ignora, pois será gerenciado pela entidade ou banco
     @Mapping(target = "participantes", ignore = true) // Ignora, pois será gerenciado em outro momento
     @Mapping(target = "pesquisadorResponsavel", ignore = true) // Ignora, pois o Service irá preencher
-    @Mapping(target = "statusExperimento", ignore = true) // Ignora, para ser definido pelo Service
     @Mapping(target = "descricaoAmbiente", ignore = true)
+
     Experimento toEntity(ExperimentoRequestDTO dto);
 
     // Converte uma Entidade para um DTO de response

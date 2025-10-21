@@ -1,5 +1,6 @@
 package com.vibetrack.backend.users.Controller; // Ou o caminho mais específico
 
+import com.vibetrack.backend.users.DTO.DashboardDTO.DashboardDTO;
 import com.vibetrack.backend.users.Service.ExperimentoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -79,5 +80,13 @@ public class ExperimentoController {
         } catch (EntityNotFoundException e) {
             return ResponseEntity.notFound().build();
         }
+    }
+
+    // No seu ExperimentoController.java
+
+    @GetMapping("/{id}/dashboard")
+    public ResponseEntity<DashboardDTO> getDashboardData(@PathVariable Long id) {
+        DashboardDTO dashboardData = experimentoService.getDashboardDataMock(id);
+        return ResponseEntity.ok(dashboardData);
     }
 }

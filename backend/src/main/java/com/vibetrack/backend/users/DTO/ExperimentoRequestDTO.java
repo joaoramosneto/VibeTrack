@@ -13,6 +13,8 @@ public record ExperimentoRequestDTO(
         @Size(min = 3, message = "O nome deve ter no mínimo 3 caracteres.")
         String nome,
 
+        String statusExperimento,
+
         String descricao,
 
         @NotNull(message = "A data de início é obrigatória.")
