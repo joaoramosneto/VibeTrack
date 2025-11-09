@@ -40,6 +40,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/pesquisadores").permitAll() // Permite a CRIAÇÃO de um pesquisador
                         .requestMatchers(HttpMethod.POST, "/api/auth/verificar-codigo").permitAll()
                         .requestMatchers(HttpMethod.POST, "/results").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/mobile/results").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
 
                         // ✅ NOVA REGRA ADICIONADA AQUI

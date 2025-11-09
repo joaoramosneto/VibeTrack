@@ -12,4 +12,5 @@ public class ExperimentResultDTO {
     public void setDeviceData(String deviceData) { this.deviceData = deviceData; }
     public HealthDataDTO getHealthData() { return healthData; }
     public void setHealthData(HealthDataDTO healthData) { this.healthData = healthData; }
+    
 }
