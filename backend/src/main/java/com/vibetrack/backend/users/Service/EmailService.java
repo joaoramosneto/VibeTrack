@@ -43,8 +43,6 @@ public class EmailService {
         }
     }
 
-    //    ↓↓↓ COLE ESTE NOVO MÉTODO DENTRO DA SUA CLASSE EmailService ↓↓↓
-
     @Async
     public void enviarEmailConfirmacaoExperimento(String paraEmail, String nomePesquisador, String nomeExperimento) {
         try {
@@ -70,7 +68,6 @@ public class EmailService {
             System.err.println("Erro ao enviar email de confirmação de experimento: " + e.getMessage());
         }
     }
-    //    ↓↓↓ ADICIONE ESTE MÉTODO NO SEU EmailService.java ↓↓↓
 
     @Async
     public void enviarEmailDeVerificacao(String paraEmail, String nomeUsuario, String codigo) {
@@ -98,4 +95,39 @@ public class EmailService {
             System.err.println("Erro ao enviar email de verificação: " + e.getMessage());
         }
     }
+
+    // vvvv ESTE É O NOVO MÉTODO QUE ADICIONAMOS vvvv
+    @Async
+    public void enviarEmailDeReset(String paraEmail, String nomeUsuario, String token) {
+        try {
+            // IMPORTANTE: Este link aponta para o seu FRONTEND.
+            // Nós ainda vamos criar esta página no Angular.
+            String urlDeReset = "http://localhost:4200/auth/reset-password?token=" + token;
+
+            SimpleMailMessage mensagem = new SimpleMailMessage();
+            mensagem.setFrom(fromEmail);
+            mensagem.setTo(paraEmail);
+            mensagem.setSubject("VibeTrack - Redefinição de Senha");
+
+            String texto = String.format(
+                    "Olá, %s!\n\n" +
+                            "Recebemos uma solicitação para redefinir sua senha na plataforma VibeTrack.\n\n" +
+                            "Clique no link abaixo (ou copie e cole no seu navegador) para criar uma nova senha. Este link é válido por 1 hora.\n\n" +
+                            "%s\n\n" +
+                            "Se você não solicitou esta redefinição, por favor, ignore este e-mail.\n\n" +
+                            "Atenciosamente,\nA Equipe VibeTrack",
+                    nomeUsuario,
+                    urlDeReset
+            );
+
+            mensagem.setText(texto);
+            mailSender.send(mensagem);
+
+            System.out.println("Email de redefinição de senha enviado para: " + paraEmail);
+
+        } catch (Exception e) {
+            System.err.println("Erro ao enviar email de redefinição: " + e.getMessage());
+        }
+    }
+    // ^^^^ FIM DO NOVO MÉTODO ^^^^
 }

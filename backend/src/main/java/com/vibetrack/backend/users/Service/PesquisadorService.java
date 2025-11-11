@@ -11,6 +11,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import java.util.UUID;
 
 import java.time.LocalDateTime; // NOVO IMPORT
 import java.util.List;
@@ -32,6 +33,7 @@ public class PesquisadorService {
 
     @Autowired
     private EmailService emailService;
+
 
 
     @Autowired
@@ -124,5 +126,88 @@ public class PesquisadorService {
 
         // 4. Salva as alterações no banco de dados
         pesquisadorRepository.save(pesquisador);
+    }
+
+    @Transactional
+    public void iniciarResetSenha(String email) {
+        // 1. Procura o pesquisador pelo e-mail
+        Pesquisador pesquisador = pesquisadorRepository.findByEmail(email);
+
+        // 2. VERIFICAÇÃO DE SEGURANÇA:
+        // Se o pesquisador não existir OU não estiver ativo,
+        // nós NÃO fazemos nada. Nós não queremos que um hacker
+        // descubra quais e-mails estão cadastrados ou inativos.
+        // Nós simplesmente fingimos que o processo continua.
+        if (pesquisador == null || !pesquisador.isAtivo()) {
+            // Log silencioso (opcional, bom para debug)
+            System.out.println("Solicitação de reset para e-mail não encontrado ou inativo: " + email);
+            return; // Sai do método silenciosamente.
+        }
+
+        // 3. Se o pesquisador foi encontrado E está ativo:
+        try {
+            // Gerar um token secreto e aleatório
+            String token = UUID.randomUUID().toString();
+
+            // Definir a expiração (ex: 1 hora a partir de agora)
+            LocalDateTime expiryDate = LocalDateTime.now().plusHours(1);
+
+            // 4. Salvar o token e a expiração no usuário
+            pesquisador.setResetToken(token);
+            pesquisador.setResetTokenExpiry(expiryDate);
+            pesquisadorRepository.save(pesquisador);
+
+            // 5. Enviar o e-mail de verdade
+            // (Vamos criar este método 'enviarEmailDeReset' no EmailService no próximo passo)
+            emailService.enviarEmailDeReset(pesquisador.getEmail(), pesquisador.getNome(), token);
+
+        } catch (Exception e) {
+            // Se o envio de e-mail falhar, não queremos que o usuário saiba.
+            // Apenas logamos o erro no backend.
+            System.err.println("Falha ao enviar e-mail de reset para: " + email);
+            e.printStackTrace();
+        }
+    }
+
+    // Em: PesquisadorService.java
+
+    // ... (aqui estão seus outros métodos como iniciarResetSenha)
+
+    /**
+     * Finaliza o processo de reset de senha.
+     * 1. Valida o token.
+     * 2. Verifica a expiração.
+     * 3. Criptografa e salva a nova senha.
+     * 4. Limpa o token para segurança.
+     */
+    // Em: src/main/java/com/vibetrack/backend/users/Service/PesquisadorService.java
+
+    @Transactional
+    public void finalizarResetSenha(String token, String novaSenha) {
+        // 1. Procura o pesquisador pelo token
+        Pesquisador pesquisador = pesquisadorRepository.findByResetToken(token)
+                .orElseThrow(() -> new EntityNotFoundException("Token de redefinição inválido.")); // Erro se o token não existir
+
+        // 2. Verifica se o token já expirou
+        if (pesquisador.getResetTokenExpiry().isBefore(LocalDateTime.now())) {
+            // Limpa o token expirado
+            pesquisador.setResetToken(null);
+            pesquisador.setResetTokenExpiry(null);
+            pesquisadorRepository.save(pesquisador); // < AQUI 'save' está OK, é só limpeza
+
+            throw new IllegalArgumentException("Token de redefinição expirado. Por favor, solicite um novo.");
+        }
+
+        // 3. Se o token for válido e não expirou:
+        // Criptografa a nova senha (usando o PasswordEncoder que já temos)
+        pesquisador.setSenha(passwordEncoder.encode(novaSenha));
+
+        // 4. Limpa os campos de token (MUITO IMPORTANTE para segurança!)
+        pesquisador.setResetToken(null);
+        pesquisador.setResetTokenExpiry(null);
+
+        // 5. Salva o usuário com a nova senha e os tokens limpos
+        //    USANDO saveAndFlush() PARA FORÇAR A ESCRITA IMEDIATA NO BANCO
+        pesquisadorRepository.saveAndFlush(pesquisador); // <-- A MUDANÇA ESTÁ AQUI
     }
 }
