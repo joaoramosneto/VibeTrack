@@ -28,7 +28,6 @@ public class SecurityConfig {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
@@ -37,14 +36,20 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authorize -> authorize
                         // AQUI definimos as rotas PÚBLICAS
                         .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/pesquisadores").permitAll() // Permite a CRIAÇÃO de um pesquisador
+                        .requestMatchers(HttpMethod.POST, "/api/pesquisadores").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/verificar-codigo").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/forgot-password").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/auth/reset-password").permitAll()
+
                         .requestMatchers(HttpMethod.POST, "/results").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
 
-                        // ✅ NOVA REGRA ADICIONADA AQUI
-                        // Permite que QUALQUER usuário AUTENTICADO acesse os outros endpoints de pesquisador
-                        // (como GET /me, POST /me/foto, etc.)
+                        // vvvv A ÚNICA LINHA NOVA É ESTA vvvv
+                        // Libera o novo endpoint de análise
+                        .requestMatchers("/api/analysis/**").permitAll()
+                        // ^^^^ A ÚNICA LINHA NOVA É ESTA ^^^^
+
+                        // Rotas que exigem autenticação
                         .requestMatchers("/api/pesquisadores/**").authenticated()
 
                         // QUALQUER OUTRA ROTA não listada acima exige autenticação

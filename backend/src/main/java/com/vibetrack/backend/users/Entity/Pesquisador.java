@@ -5,7 +5,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.time.LocalDateTime; // <-- NOVO IMPORT
+import java.time.LocalDateTime; // Este import já existia
 import java.util.Collection;
 import java.util.List;
 
@@ -34,6 +34,15 @@ public class Pesquisador implements UserDetails {
     private String codigoVerificacao;
     private LocalDateTime codigoVerificacaoExpiracao;
     // ^^^ FIM DOS CAMPOS NOVOS ^^^
+
+    // vvvv CAMPOS NOVOS PARA RESET DE SENHA vvvv
+    @Column(name = "reset_token")
+    private String resetToken;
+
+    @Column(name = "reset_token_expiry")
+    private LocalDateTime resetTokenExpiry;
+    // ^^^^ FIM DOS CAMPOS NOVOS PARA RESET DE SENHA ^^^^
+
 
     // Construtores
     public Pesquisador() {
@@ -112,6 +121,24 @@ public class Pesquisador implements UserDetails {
         this.codigoVerificacaoExpiracao = codigoVerificacaoExpiracao;
     }
     // ^^^ FIM DOS GETTERS E SETTERS NOVOS ^^^
+
+    // vvvv GETTERS E SETTERS PARA RESET DE SENHA vvvv
+    public String getResetToken() {
+        return resetToken;
+    }
+
+    public void setResetToken(String resetToken) {
+        this.resetToken = resetToken;
+    }
+
+    public LocalDateTime getResetTokenExpiry() {
+        return resetTokenExpiry;
+    }
+
+    public void setResetTokenExpiry(LocalDateTime resetTokenExpiry) {
+        this.resetTokenExpiry = resetTokenExpiry;
+    }
+    // ^^^^ FIM DOS GETTERS E SETTERS PARA RESET DE SENHA ^^^^
 
 
     // --- MÉTODOS DO UserDetails ---

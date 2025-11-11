@@ -10,11 +10,15 @@ import java.util.Optional; // <-- NOVO IMPORT
 @Repository
 public interface PesquisadorRepository extends JpaRepository<Pesquisador, Long> {
 
-    UserDetails findByEmail(String email);
+    Pesquisador findByEmail(String email);
 
     // vvvv ADICIONE APENAS ESTA LINHA vvvv
     // Spring Data JPA vai entender, pelo nome, que este método deve
     // procurar um Pesquisador pela sua propriedade "codigoVerificacao".
     Optional<Pesquisador> findByCodigoVerificacao(String codigo);
+    Optional<Pesquisador> findByResetToken(String resetToken);
     // ^^^^ FIM DA ADIÇÃO ^^^^
+
+
+
 }
