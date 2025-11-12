@@ -1,4 +1,6 @@
-FROM maven:3.9.6-openjdk-21 AS builder
+# --- ESTÁGIO 1: Build (Construir o .jar) ---
+# IMAGEM CORRIGIDA: Usa uma etiqueta (tag) completa e válida
+FROM eclipse-temurin:21-jdk AS builder
 
 # Define o diretório de trabalho dentro do contêiner
 WORKDIR /build
@@ -10,17 +12,15 @@ COPY backend/pom.xml .
 RUN mvn dependency:go-offline
 
 # Copia o código-fonte do subdiretório 'backend'
-# Copiamos 'src' para './src' (relativo ao WORKDIR)
 COPY backend/src ./src
 
 # Compila a aplicação, constrói o .jar e pula os testes
-# O .jar será criado em /build/target/
 RUN mvn package -DskipTests
 
 
 # --- ESTÁGIO 2: Run (Criar a imagem final) ---
-# Usamos uma imagem JRE (Java Runtime) otimizada e pequena
-FROM eclipse-temurin:17-jre-jammy
+# Esta imagem está correta e é otimizada
+FROM openjdk:21-jre-slim
 
 # Define o diretório de trabalho final
 WORKDIR /app
@@ -33,5 +33,4 @@ COPY --from=builder /build/target/*.jar app.jar
 EXPOSE 8080
 
 # Comando final para rodar a aplicação
-# (As variáveis de ambiente do Cloud Run serão injetadas aqui)
 CMD ["java", "-jar", "app.jar"]
