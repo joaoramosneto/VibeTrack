@@ -1,6 +1,4 @@
-# --- ESTÁGIO 1: Build (Construir o .jar) ---
-
-FROM maven:3-openjdk-21 AS builder
+FROM maven:3.9.6-openjdk-21 AS builder
 
 # Define o diretório de trabalho dentro do contêiner
 WORKDIR /build
