@@ -72,7 +72,7 @@ public class PesquisadorService {
         // 2. Define o código e a data de expiração (ex: 15 minutos a partir de agora)
         pesquisador.setCodigoVerificacao(codigo);
         pesquisador.setCodigoVerificacaoExpiracao(LocalDateTime.now().plusMinutes(15));
-        pesquisador.setAtivo(false); // O usuário começa como inativo
+        pesquisador.setAtivo(true); // O usuário começa como inativo
         // --- FIM DA LÓGICA NOVA ---
 
         // Salva a entidade no banco
