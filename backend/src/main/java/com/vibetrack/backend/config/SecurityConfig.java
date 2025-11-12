@@ -9,12 +9,16 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
+
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -28,30 +32,43 @@ public class SecurityConfig {
         return authenticationConfiguration.getAuthenticationManager();
     }
 
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
+                // ✅ Habilita CORS antes de qualquer outra configuração
+                .cors(cors -> cors.configurationSource(request -> {
+                    CorsConfiguration config = new CorsConfiguration();
+
+                    // Domínios permitidos
+                    config.setAllowedOrigins(List.of(
+                            "https://vibetrack-473604.web.app",
+                            "http://localhost:4200" // para testes locais
+                    ));
+
+                    // Métodos HTTP permitidos
+                    config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+
+                    // Cabeçalhos permitidos
+                    config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+
+                    // Permitir credenciais (Authorization header)
+                    config.setAllowCredentials(true);
+
+                    return config;
+                }))
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
-                        // AQUI definimos as rotas PÚBLICAS
                         .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/pesquisadores").permitAll() // Permite a CRIAÇÃO de um pesquisador
+                        .requestMatchers(HttpMethod.POST, "/api/pesquisadores").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/auth/verificar-codigo").permitAll()
                         .requestMatchers(HttpMethod.POST, "/results").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
-
-                        // ✅ NOVA REGRA ADICIONADA AQUI
-                        // Permite que QUALQUER usuário AUTENTICADO acesse os outros endpoints de pesquisador
-                        // (como GET /me, POST /me/foto, etc.)
                         .requestMatchers("/api/pesquisadores/**").authenticated()
-
-                        // QUALQUER OUTRA ROTA não listada acima exige autenticação
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
-                .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable())) // Necessário para o H2 console
+                .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable()))
                 .build();
     }
 
