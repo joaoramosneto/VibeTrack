@@ -30,6 +30,11 @@ public class SecurityFilter extends OncePerRequestFilter {
 
     String path = request.getRequestURI();
 
+            // Normaliza o path removendo a barra final, se ela existir
+    if (path.endsWith("/") && path.length() > 1) {
+        path = path.substring(0, path.length() - 1);
+    }
+
     // Ignora endpoints públicos 
     if (path.startsWith("/api/auth/") || 
         path.equals("/api/pesquisadores") || 
