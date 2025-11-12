@@ -19,48 +19,35 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.List;
+import java.util.Arrays;
 
 @Configuration
 @EnableWebSecurity
 public class SecurityConfig {
 
     @Autowired
-    private SecurityFilter securityFilter;
+    SecurityFilter securityFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            // ✅ Habilita CORS e desativa CSRF
-            .cors(Customizer.withDefaults())
-            .csrf(csrf -> csrf.disable())
-            .headers(headers -> headers.frameOptions(frame -> frame.disable()))
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .cors(Customizer.withDefaults())
+                .csrf(csrf -> csrf.disable())
+                .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable()))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(authorize -> authorize
+                        .requestMatchers(HttpMethod.POST, "/api/auth/**").permitAll()
 
-            // ✅ Autorizações explícitas
-            .authorizeHttpRequests(auth -> auth
-                // Rotas públicas de autenticação
-                .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/auth/register").permitAll()
+                        // CORREÇÃO 1: ROTA DE CRIAÇÃO CORRIGIDA
+                        .requestMatchers(HttpMethod.POST, "/api/pesquisadores").permitAll()
 
-                // Rota de criação de pesquisador
-                .requestMatchers(HttpMethod.POST, "/api/pesquisadores").permitAll()
-
-                // Rotas públicas específicas de integração mobile
-                .requestMatchers(HttpMethod.POST, "/api/dados-biometricos/mobile-data").permitAll()
-                .requestMatchers(HttpMethod.POST, "/api/mobile/results").permitAll()
-
-                // Recursos públicos (imagens, console H2)
-                .requestMatchers(HttpMethod.GET, "/fotos-perfil/**").permitAll()
-                .requestMatchers("/h2-console/**").permitAll()
-
-                // Todas as demais rotas exigem autenticação
-                .anyRequest().authenticated()
-            )
-
-            // ✅ Filtro JWT antes do UsernamePasswordAuthenticationFilter
-            .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class);
-
+                        .requestMatchers(HttpMethod.POST, "/api/dados-biometricos/mobile-data").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/mobile/results").permitAll() // Rota do celular
+                        .requestMatchers(HttpMethod.GET, "/fotos-perfil/**").permitAll()
+                        .requestMatchers("/h2-console/**").permitAll()
+                        .anyRequest().authenticated()
+                )
+                .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
 
@@ -74,24 +61,18 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    // ✅ Configuração global de CORS
     @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
+    CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        configuration.setAllowedOrigins(List.of(
-            "https://vibetrack-frontend.web.app", // domínio de produção (Firebase)
-            "http://localhost:4200"               // ambiente local (Angular)
-        ));
+        // CORREÇÃO 2: PERMITINDO QUALQUER ORIGEM (CELULAR, WEB, ETC.)
+        configuration.setAllowedOrigins(Arrays.asList("*"));
 
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"));
-        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Cache-Control"));
-        configuration.setAllowCredentials(true);
-        configuration.setMaxAge(3600L);
-
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Cache-Control"));
+        // configuration.setAllowCredentials(true); // Removido pois não pode ser usado com "AllowedOrigins(*)"
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
-
         return source;
     }
 }
