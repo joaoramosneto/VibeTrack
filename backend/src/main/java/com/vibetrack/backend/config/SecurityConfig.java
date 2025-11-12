@@ -35,41 +35,15 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
-                // ✅ Habilita CORS antes de qualquer outra configuração
-                .cors(cors -> cors.configurationSource(request -> {
-                    CorsConfiguration config = new CorsConfiguration();
-
-                    // Domínios permitidos
-                    config.setAllowedOrigins(List.of(
-                            "https://vibetrack-473604.web.app",
-                            "http://localhost:4200" // para testes locais
-                    ));
-
-                    // Métodos HTTP permitidos
-                    config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-
-                    // Cabeçalhos permitidos
-                    config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
-
-                    // Permitir credenciais (Authorization header)
-                    config.setAllowCredentials(true);
-
-                    return config;
-                }))
+                .cors(cors -> cors.disable())          // or keep your previous CORS if needed
                 .csrf(csrf -> csrf.disable())
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/pesquisadores").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/auth/verificar-codigo").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/results").permitAll()
-                        .requestMatchers("/h2-console/**").permitAll()
-                        .requestMatchers("/api/pesquisadores/**").authenticated()
-                        .anyRequest().authenticated()
+                .authorizeHttpRequests(auth -> auth
+                        .anyRequest().permitAll()      // TEMP: allow everything
                 )
-                .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
-                .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable()))
+                // Remove custom filter (or leave, but it will be a pass‑through after next change)
                 .build();
+              
     }
 
     @Bean
