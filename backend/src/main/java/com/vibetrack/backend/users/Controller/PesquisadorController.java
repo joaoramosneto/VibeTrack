@@ -17,7 +17,6 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/pesquisadores")
-@CrossOrigin(origins = "http://localhost:4200") // Permite requisições do frontend Angular
 public class PesquisadorController {
 
 
