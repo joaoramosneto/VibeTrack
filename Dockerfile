@@ -1,6 +1,6 @@
 # --- ESTÁGIO 1: Build (Construir o .jar) ---
 # IMAGEM CORRIGIDA: Usa uma etiqueta (tag) completa e válida
-FROM eclipse-temurin:21-jdk AS builder
+FROM maven:3.9-eclipse-temurin-21 AS builder
 
 # Define o diretório de trabalho dentro do contêiner
 WORKDIR /build
