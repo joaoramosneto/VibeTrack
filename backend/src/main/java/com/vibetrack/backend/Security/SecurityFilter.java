@@ -28,42 +28,6 @@ public class SecurityFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
         throws ServletException, IOException {
 
-    String path = request.getRequestURI();
-
-            // Normaliza o path removendo a barra final, se ela existir
-    if (path.endsWith("/") && path.length() > 1) {
-        path = path.substring(0, path.length() - 1);
-    }
-
-    // Ignora endpoints públicos 
-    if (path.startsWith("/api/auth/") || 
-        path.equals("/api/pesquisadores") || 
-        path.equals("/results") ||
-        path.startsWith("/h2-console")) {
-
-        filterChain.doFilter(request, response);
-        return;
-    }
-
-    // Demais rotas exigem validação do token
-    var token = recuperarToken(request);
-
-    if (token != null) {
-        try {
-            var email = tokenService.validarToken(token); // Pega o subject (email)
-            UserDetails pesquisador = pesquisadorRepository.findByEmail(email);
-
-            if (pesquisador != null) {
-                var authentication = new UsernamePasswordAuthenticationToken(
-                        pesquisador, null, pesquisador.getAuthorities());
-                SecurityContextHolder.getContext().setAuthentication(authentication);
-            }
-        } catch (Exception e) {
-            // Token inválido → 403
-            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
-            return;
-        }
-    }
 
     filterChain.doFilter(request, response);
 }
