@@ -65,14 +65,23 @@ public class SecurityConfig {
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        // CORREÇÃO 2: PERMITINDO QUALQUER ORIGEM (CELULAR, WEB, ETC.)
-        configuration.setAllowedOrigins(Arrays.asList("*"));
+        // 1. ESPECIFIQUE AS ORIGENS PERMITIDAS (PRODUÇÃO E LOCAL)
+        configuration.setAllowedOrigins(List.of(
+                "https://vibetrack-473604.web.app",  // <-- Seu frontend de produção
+                "http://localhost:4200"            // <-- Seu frontend local
+        ));
 
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Cache-Control"));
-        // configuration.setAllowCredentials(true); // Removido pois não pode ser usado com "AllowedOrigins(*)"
+        // 2. DEFINA OS MÉTODOS
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"));
+        
+        // 3. DEFINA OS HEADERS PERMITIDOS
+        configuration.setAllowedHeaders(List.of("Authorization", "Content-Type", "Cache-Control"));
+        
+        // 4. PERMITA CREDENCIAIS (ESSENCIAL PARA LOGIN/AUTH)
+        configuration.setAllowCredentials(true); 
+
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
+        source.registerCorsConfiguration("/**", configuration); // Aplica a todas as rotas
         return source;
     }
 }
