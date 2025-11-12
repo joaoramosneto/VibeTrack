@@ -47,6 +47,31 @@ public class SecurityConfig {
     }
 
     @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        
+        // Add BOTH your production and local URLs
+        configuration.setAllowedOrigins(List.of(
+                "https://vibetrack-473604.web.app",  // <-- Your production frontend
+                "http://localhost:4200"            // <-- Your local frontend
+        ));
+        
+        // Allow all methods, including the preflight "OPTIONS"
+        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS", "HEAD"));
+        
+        // Allow all headers
+        configuration.setAllowedHeaders(List.of("*"));
+        
+        // Allow credentials
+        configuration.setAllowCredentials(true);
+        
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        // Apply this config to all your API routes
+        source.registerCorsConfiguration("/**", configuration); 
+        return source;
+    }
+
+    @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
