@@ -25,23 +25,43 @@ public class SecurityFilter extends OncePerRequestFilter {
     private PesquisadorRepository pesquisadorRepository;
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
-        var token = this.recuperarToken(request);
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+        throws ServletException, IOException {
 
-        if (token != null) {
-            var email = tokenService.validarToken(token); // Valida o token e pega o email (subject)
+    String path = request.getRequestURI();
+
+    // Ignora endpoints públicos 
+    if (path.startsWith("/api/auth/") || 
+        path.equals("/api/pesquisadores") || 
+        path.equals("/results") ||
+        path.startsWith("/h2-console")) {
+
+        filterChain.doFilter(request, response);
+        return;
+    }
+
+    // Demais rotas exigem validação do token
+    var token = recuperarToken(request);
+
+    if (token != null) {
+        try {
+            var email = tokenService.validarToken(token); // Pega o subject (email)
             UserDetails pesquisador = pesquisadorRepository.findByEmail(email);
 
             if (pesquisador != null) {
-                // Se o usuário existe, nós o autenticamos no Spring Security
-                var authentication = new UsernamePasswordAuthenticationToken(pesquisador, null, pesquisador.getAuthorities());
+                var authentication = new UsernamePasswordAuthenticationToken(
+                        pesquisador, null, pesquisador.getAuthorities());
                 SecurityContextHolder.getContext().setAuthentication(authentication);
             }
+        } catch (Exception e) {
+            // Token inválido → 403
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            return;
         }
-
-        // Continua o fluxo da requisição
-        filterChain.doFilter(request, response);
     }
+
+    filterChain.doFilter(request, response);
+}
 
     private String recuperarToken(HttpServletRequest request) {
         var authHeader = request.getHeader("Authorization");
