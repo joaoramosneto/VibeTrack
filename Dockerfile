@@ -1,6 +1,6 @@
 # --- ESTÁGIO 1: Build (Construir o .jar) ---
 # Usamos uma imagem base do Maven com JDK 17 (baseado no seu pom.xml)
-FROM maven:3-eclipse-temurin-17 AS builder
+FROM maven:3-openjdk-17 AS builder
 
 # Define o diretório de trabalho dentro do contêiner
 WORKDIR /build
