@@ -20,7 +20,7 @@ RUN mvn package -DskipTests
 
 # --- ESTÁGIO 2: Run (Criar a imagem final) ---
 # Esta imagem está correta e é otimizada
-FROM openjdk:21-jre-slim
+FROM maven:3.9-eclipse-temurin-21
 
 # Define o diretório de trabalho final
 WORKDIR /app
