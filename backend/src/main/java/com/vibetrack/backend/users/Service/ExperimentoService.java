@@ -33,6 +33,8 @@ public class ExperimentoService {
     private ParticipanteRepository participanteRepository;
     @Autowired
     private ExperimentoMapper experimentoMapper;
+    @Autowired 
+    private DadoBiometricoRepository dadoBiometricoRepository;
 
     // vvvv PASSO 1: INJETAR O SERVIÇO DE EMAIL vvvv
     @Autowired
@@ -142,22 +144,42 @@ public class ExperimentoService {
         experimentoRepository.save(experimento);
     }
 
-    public DashboardDTO getDashboardDataMock(Long experimentoId) {
-        // Simula que estamos buscando um experimento
-        // Experimento experimento = experimentoRepository.findById(experimentoId).orElseThrow(...);
+    @Transactional(readOnly = true)
+    public DashboardDTO getDashboardData(Long experimentoId) {
+        // 1. Validar a existência do Experimento
+        if (!experimentoRepository.existsById(experimentoId)) {
+            throw new EntityNotFoundException("Experimento com ID " + experimentoId + " não encontrado.");
+        }
 
-        // Mock para o gráfico de Frequência Cardíaca (Linha)
-        var labelsTempo = List.of("0s", "10s", "20s", "30s", "40s", "50s", "60s");
-        var dadosBatimentos = List.of(72, 75, 74, 80, 85, 82, 78);
-        var datasetFrequencia = new LineChartDatasetDTO("Frequência Cardíaca (BPM)", dadosBatimentos);
+        // 2. Buscar os dados de Frequência Cardíaca no banco
+        // Utilizamos a constante 'FC_MEDIA' como exemplo de TIPO_DADO a ser buscado, baseando-se na imagem H2.
+        // Se a aplicação usa 'FREQUENCIA_CARDIACA' para o dado em si, é só trocar a string.
+        String TIPO_DADO_BUSCA = "FC_MEDIA"; // Usando FC_MEDIA como exemplo da estrutura da sua tabela
+        List<DadoBiometrico> dadosHeartRate = dadoBiometricoRepository.findByExperimentoIdAndTipoDadoOrderByTimestampAsc(
+                experimentoId,
+                TIPO_DADO_BUSCA
+        );
+
+        // 3. Processar os dados para o formato LineChartDataDTO
+        List<String> labelsTempo = dadosHeartRate.stream()
+                // Formata o timestamp (ex: HH:mm:ss) para o eixo X
+                .map(dado -> dado.getTimestamp().format(DateTimeFormatter.ofPattern("HH:mm:ss")))
+                .collect(Collectors.toList());
+
+        List<Integer> dadosBatimentos = dadosHeartRate.stream()
+                .map(dado -> dado.getValor().intValue()) // Converte Double para Int para o gráfico
+                .collect(Collectors.toList());
+
+        // Cria o Dataset e o DTO do gráfico de linha
+        var datasetFrequencia = new LineChartDatasetDTO("Frequência Cardíaca Média (BPM)", dadosBatimentos);
         var graficoFrequencia = new LineChartDataDTO(labelsTempo, List.of(datasetFrequencia));
 
-        // Mock para o gráfico de Distribuição de Emoções (Pizza)
+        // 4. MANTÉM O MOCK para Distribuição de Emoções (Assumindo que estes dados vêm de outro lugar)
         var labelsEmocoes = List.of("Neutro", "Feliz", "Surpreso", "Triste");
-        var dadosContagem = List.of(150, 90, 45, 15); // Simula a contagem de frames/eventos
+        var dadosContagem = List.of(150, 90, 45, 15);
         var graficoEmocoes = new ChartDataDTO(labelsEmocoes, dadosContagem);
 
-        // Junta tudo no DTO principal e retorna
+        // 5. Junta tudo no DTO principal e retorna
         return new DashboardDTO(graficoFrequencia, graficoEmocoes);
     }
 }

@@ -86,7 +86,13 @@ public class ExperimentoController {
 
     @GetMapping("/{id}/dashboard")
     public ResponseEntity<DashboardDTO> getDashboardData(@PathVariable Long id) {
-        DashboardDTO dashboardData = experimentoService.getDashboardDataMock(id);
-        return ResponseEntity.ok(dashboardData);
+        try {
+            // Chamando o método funcional (que substituiu o mock)
+            DashboardDTO dashboardData = experimentoService.getDashboardData(id);
+            return ResponseEntity.ok(dashboardData);
+        } catch (EntityNotFoundException e) {
+            // Retorna 404 se o experimento não for encontrado
+            return ResponseEntity.notFound().build();
+        }
     }
 }

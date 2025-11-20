@@ -5,4 +5,5 @@ import com.vibetrack.backend.users.Entity.DadoBiometrico;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface DadoBiometricoRepository extends JpaRepository<DadoBiometrico, Long> {
+    List<DadoBiometrico> findByExperimentoIdAndTipoDadoOrderByTimestampAsc(Long experimentoId, String tipoDado);
 }
