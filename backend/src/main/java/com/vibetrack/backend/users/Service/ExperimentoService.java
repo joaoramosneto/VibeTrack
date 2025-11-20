@@ -19,11 +19,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import com.vibetrack.backend.users.Entity.DadoBiometrico; //
+import com.vibetrack.backend.users.Entity.DadoBiometrico;
 import com.vibetrack.backend.users.Repository.DadoBiometricoRepository;
-import java.time.format.DateTimeFormatter; // <--- IMPORT P/ FORMATAR TIMESTAMP
-import java.util.List;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList; 
+import java.util.List; 
 import java.util.stream.Collectors;
+
 @Service
 public class ExperimentoService {
 
@@ -38,7 +40,6 @@ public class ExperimentoService {
     @Autowired 
     private DadoBiometricoRepository dadoBiometricoRepository;
 
-    // vvvv PASSO 1: INJETAR O SERVIÇO DE EMAIL vvvv
     @Autowired
     private EmailService emailService;
 
@@ -62,19 +63,15 @@ public class ExperimentoService {
 
         Experimento experimentoSalvo = experimentoRepository.save(experimento);
 
-        // vvvv PASSO 2: CHAMAR O SERVIÇO DE EMAIL AQUI vvvv
-        // Dispara o email de confirmação em segundo plano
         emailService.enviarEmailConfirmacaoExperimento(
                 pesquisador.getEmail(),
                 pesquisador.getNome(),
                 experimentoSalvo.getNome()
         );
-        // ^^^^ FIM DA CHAMADA ^^^^
 
         return experimentoMapper.toResponseDTO(experimentoSalvo);
     }
 
-    // O resto dos seus métodos continuam exatamente como estavam antes
     @Transactional
     public ExperimentoResponseDTO salvar(ExperimentoRequestDTO requestDTO) {
         Pesquisador pesquisador = pesquisadorRepository.findById(requestDTO.pesquisadorId())
@@ -88,7 +85,6 @@ public class ExperimentoService {
         experimento.setPesquisadorResponsavel(pesquisador);
         Experimento experimentoSalvo = experimentoRepository.save(experimento);
 
-        // Também vamos adicionar o envio de email aqui, para o caso de este método ser usado
         emailService.enviarEmailConfirmacaoExperimento(
                 pesquisador.getEmail(),
                 pesquisador.getNome(),
@@ -146,42 +142,48 @@ public class ExperimentoService {
         experimentoRepository.save(experimento);
     }
 
+    // MÉTODO FINALIZADO (SEM MOCK)
     @Transactional(readOnly = true)
     public DashboardDTO getDashboardData(Long experimentoId) {
-        // 1. Validar a existência do Experimento
         if (!experimentoRepository.existsById(experimentoId)) {
             throw new EntityNotFoundException("Experimento com ID " + experimentoId + " não encontrado.");
         }
 
-        // 2. Buscar os dados de Frequência Cardíaca no banco
-        // Utilizamos a constante 'FC_MEDIA' como exemplo de TIPO_DADO a ser buscado, baseando-se na imagem H2.
-        // Se a aplicação usa 'FREQUENCIA_CARDIACA' para o dado em si, é só trocar a string.
-        String TIPO_DADO_BUSCA = "FC_MEDIA"; // Usando FC_MEDIA como exemplo da estrutura da sua tabela
-        List<DadoBiometrico> dadosHeartRate = dadoBiometricoRepository.findByExperimentoIdAndTipoDadoOrderByTimestampAsc(
-                experimentoId,
-                TIPO_DADO_BUSCA
-        );
+        // --- 1. CONFIGURAÇÃO PARA GRÁFICO DE COMPARAÇÃO DE TIPOS (Eixo X = Tipos) ---
 
-        // 3. Processar os dados para o formato LineChartDataDTO
-        List<String> labelsTempo = dadosHeartRate.stream()
-                // Formata o timestamp (ex: HH:mm:ss) para o eixo X
-                .map(dado -> dado.getTimestamp().format(DateTimeFormatter.ofPattern("HH:mm:ss")))
-                .collect(Collectors.toList());
+        // Rótulos do Eixo X (Tipos de FC traduzidos para exibição)
+        List<String> labelsTipos = List.of("FC Mínima", "FC Média", "FC Máxima"); 
 
-        List<Integer> dadosBatimentos = dadosHeartRate.stream()
-                .map(dado -> dado.getValor().intValue()) // Converte Double para Int para o gráfico
-                .collect(Collectors.toList());
+        // Valores do Eixo Y (BPM)
+        List<Integer> dadosBatimentos = new ArrayList<>();
+        
+        // Tipos a buscar no banco (nomes exatos da coluna TIPO_DADO)
+        List<String> tipos = List.of("FC_MINIMA", "FC_MEDIA", "FC_MAXIMA");
+        
+        // Busca o último valor (mais recente) para cada tipo
+        for (String tipo : tipos) {
+            List<DadoBiometrico> dados = dadoBiometricoRepository.findByExperimentoIdAndTipoDadoOrderByTimestampAsc(
+                    experimentoId,
+                    tipo
+            );
+            
+            if (!dados.isEmpty()) {
+                DadoBiometrico ultimoDado = dados.get(dados.size() - 1);
+                dadosBatimentos.add(ultimoDado.getValor().intValue());
+            } else {
+                // Adiciona 0 se o dado estiver faltando
+                dadosBatimentos.add(0);
+            }
+        }
+        
+        // 2. Cria o Dataset e o DTO do gráfico (Saída correta)
+        var datasetFrequencia = new LineChartDatasetDTO("Batimentos por Minuto (BPM)", dadosBatimentos);
+        var graficoFrequencia = new LineChartDataDTO(labelsTipos, List.of(datasetFrequencia));
 
-        // Cria o Dataset e o DTO do gráfico de linha
-        var datasetFrequencia = new LineChartDatasetDTO("Frequência Cardíaca Média (BPM)", dadosBatimentos);
-        var graficoFrequencia = new LineChartDataDTO(labelsTempo, List.of(datasetFrequencia));
+        // 3. REMOÇÃO DO MOCK: Retorna ChartDataDTO vazio
+        var graficoEmocoes = new ChartDataDTO(List.of(), List.of());
 
-        // 4. MANTÉM O MOCK para Distribuição de Emoções (Assumindo que estes dados vêm de outro lugar)
-        var labelsEmocoes = List.of("Neutro", "Feliz", "Surpreso", "Triste");
-        var dadosContagem = List.of(150, 90, 45, 15);
-        var graficoEmocoes = new ChartDataDTO(labelsEmocoes, dadosContagem);
-
-        // 5. Junta tudo no DTO principal e retorna
+        // 4. Retorna
         return new DashboardDTO(graficoFrequencia, graficoEmocoes);
     }
 }
