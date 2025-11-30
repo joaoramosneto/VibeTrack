@@ -1,10 +1,10 @@
 package com.vibetrack.backend.users.Controller;
 
+// Import do DTO de Alteração de Senha
+import com.vibetrack.backend.users.DTO.pesquisadorDTO.ChangePasswordRequestDTO;
 import com.vibetrack.backend.users.DTO.pesquisadorDTO.PesquisadorRequestDTO;
 import com.vibetrack.backend.users.DTO.pesquisadorDTO.PesquisadorResponseDTO;
 import com.vibetrack.backend.users.Entity.Pesquisador;
-import com.vibetrack.backend.users.Repository.PesquisadorRepository;
-import com.vibetrack.backend.users.Service.FileStorageService;
 import com.vibetrack.backend.users.Service.PesquisadorService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,10 +19,8 @@ import java.util.List;
 @RequestMapping("/api/pesquisadores")
 public class PesquisadorController {
 
-
     @Autowired
     private PesquisadorService pesquisadorService;
-
 
     // Endpoint para CRIAR um novo pesquisador
     @PostMapping
@@ -40,20 +38,12 @@ public class PesquisadorController {
 
     @GetMapping("/me")
     public ResponseEntity<Pesquisador> getMeuPerfil(@AuthenticationPrincipal Pesquisador pesquisadorLogado) {
-        // O @AuthenticationPrincipal injeta diretamente o objeto do usuário logado.
-        // É a forma mais elegante e segura de fazer isso.
-        // O Spring Security cuida de buscar o usuário a partir do token.
-
-        // Você pode retornar o objeto diretamente ou um DTO (Data Transfer Object)
-        // se quiser controlar os campos que são expostos.
         return ResponseEntity.ok(pesquisadorLogado);
     }
 
     // Endpoint para BUSCAR um pesquisador por ID
     @GetMapping("/{id}")
     public ResponseEntity<PesquisadorResponseDTO> buscarPesquisadorPorId(@PathVariable Long id) {
-        // O tratamento de erro (EntityNotFoundException) pode ser melhorado com @ControllerAdvice,
-        // mas por enquanto um try-catch funciona.
         try {
             PesquisadorResponseDTO pesquisador = pesquisadorService.buscarPesquisadorPorId(id);
             return ResponseEntity.ok(pesquisador);
@@ -64,9 +54,23 @@ public class PesquisadorController {
 
     @PostMapping("/me/foto")
     public ResponseEntity<String> uploadFotoPerfil(@AuthenticationPrincipal Pesquisador pesquisadorLogado, @RequestParam("file") MultipartFile file) {
-        // A única responsabilidade do controller é chamar o serviço.
         pesquisadorService.atualizarFotoPerfil(pesquisadorLogado, file);
         return ResponseEntity.ok().body("Foto atualizada com sucesso.");
     }
 
+    // vvvv NOVO ENDPOINT: ALTERAR SENHA vvvv
+    @PutMapping("/me/senha")
+    public ResponseEntity<?> alterarSenha(@AuthenticationPrincipal Pesquisador pesquisadorLogado, @RequestBody @Valid ChangePasswordRequestDTO requestDTO) {
+        try {
+            // Chama o serviço passando o ID do usuário logado e os dados da requisição
+            pesquisadorService.alterarSenha(pesquisadorLogado.getId(), requestDTO);
+            return ResponseEntity.ok().body("Senha alterada com sucesso.");
+        } catch (IllegalArgumentException e) {
+            // Retorna erro 400 se a senha atual estiver errada ou a confirmação falhar
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Erro ao alterar senha.");
+        }
+    }
+    // ^^^^ FIM DO NOVO ENDPOINT ^^^^
 }

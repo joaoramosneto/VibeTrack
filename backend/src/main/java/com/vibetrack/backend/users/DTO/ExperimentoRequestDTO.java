@@ -1,12 +1,11 @@
-// Crie este novo arquivo: ExperimentoRequestDTO.java
-package com.vibetrack.backend.users.DTO; // Sugestão de pacote para DTOs
+package com.vibetrack.backend.users.DTO;
 
-import com.vibetrack.backend.users.Entity.Pesquisador;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import java.time.LocalDate;
+import java.util.List; // Import necessário
 
 public record ExperimentoRequestDTO(
         @NotBlank(message = "O nome não pode ser vazio.")
@@ -15,7 +14,13 @@ public record ExperimentoRequestDTO(
 
         String statusExperimento,
 
-        String descricao,
+        String descricaoAmbiente,
+
+        String tipoEmocao,
+
+        // VVVV MUDANÇA: AGORA É UMA LISTA DE STRINGS VVVV
+        List<String> urlsMidia,
+        // ^^^^ FIM DA MUDANÇA ^^^^
 
         @NotNull(message = "A data de início é obrigatória.")
         @FutureOrPresent(message = "A data de início não pode ser no passado.")
@@ -24,6 +29,9 @@ public record ExperimentoRequestDTO(
         @NotNull(message = "A data de fim é obrigatória.")
         LocalDate dataFim,
 
-         @NotNull(message = "O ID do pesquisador é obrigatório.")
-                Long pesquisadorId // <-- Nós adicionamos esta linha
+        @NotNull(message = "O ID do pesquisador é obrigatório.")
+        Long pesquisadorId,
+
+        // Mantemos o participanteId
+        Long participanteId
 ) {}

@@ -4,10 +4,11 @@ import com.vibetrack.backend.users.Entity.Enums.StatusExperimento;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotNull;
-// import javax.persistence.*; // Para Spring Boot 2.x
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList; // Import necessário
 import java.util.HashSet;
+import java.util.List;      // Import necessário
 import java.util.Set;
 
 @Entity
@@ -21,11 +22,21 @@ public class Experimento {
     @Column(nullable = false)
     private String nome;
 
-    @Lob // Para textos mais longos
-    @Column(columnDefinition = "TEXT")
-    private String descricao;
+    @Lob
+    @Column(columnDefinition = "TEXT", name = "descricao_geral")
+    private String descricaoGeral;
 
-    @Column(nullable = true, updatable = false) // Não atualizável após criação
+    @Column(name = "resultado_emocional")
+    private String resultadoEmocional;
+
+    // VVVV MUDANÇA: DE STRING PARA LISTA DE STRINGS VVVV
+    @ElementCollection
+    @CollectionTable(name = "experimento_midias", joinColumns = @JoinColumn(name = "experimento_id"))
+    @Column(name = "url_midia")
+    private List<String> urlsMidia = new ArrayList<>();
+    // ^^^^ ISSO CRIA UMA TABELA EXTRA SÓ PARA GUARDAR AS URLS ^^^^
+
+    @Column(nullable = true, updatable = false)
     private LocalDateTime dataCriacao;
 
     private @NotNull(message = "A data de início é obrigatória.")
@@ -33,11 +44,11 @@ public class Experimento {
 
     private @NotNull(message = "A data de fim é obrigatória.") LocalDate dataFim;
 
-    @Enumerated(EnumType.STRING) // Grava o nome do Enum no banco
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private StatusExperimento statusExperimento;
 
-    @ManyToOne(fetch = FetchType.LAZY) // LAZY é geralmente melhor para performance
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "pesquisador_id", nullable = true)
     private Pesquisador pesquisadorResponsavel;
 
@@ -45,7 +56,10 @@ public class Experimento {
     @Column(columnDefinition = "TEXT")
     private String descricaoAmbiente;
 
-    // Relacionamento com Participantes (um experimento pode ter muitos participantes)
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "participante_id", nullable = true)
+    private Participante participantePrincipal;
+
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "experimento_participantes",
@@ -54,40 +68,16 @@ public class Experimento {
     )
     private Set<Participante> participantes = new HashSet<>();
 
-    // Se você criar entidades separadas para Video, Audio, DadoSmartwatch:
-    // @OneToMany(mappedBy = "experimento", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    // private List<Video> videos = new ArrayList<>();
-
-    // @OneToMany(mappedBy = "experimento", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    // private List<Audio> audios = new ArrayList<>();
-
-    // @OneToMany(mappedBy = "experimento", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
-    // private List<DadoSmartwatch> dadosSmartwatch = new ArrayList<>();
-
 
     // Construtores
     public Experimento() {
-        this.dataCriacao = LocalDateTime.now(); // Define a data de criação automaticamente
-        this.statusExperimento = StatusExperimento.PLANEJADO; // Status inicial padrão
+        this.dataCriacao = LocalDateTime.now();
+        this.statusExperimento = StatusExperimento.PLANEJADO;
     }
-
-    // Getters e Setters (omitidos por brevidade, mas são necessários)
-    // Lembre-se de usar Lombok @Getter @Setter @NoArgsConstructor @AllArgsConstructor se preferir
-
-    // Métodos utilitários para gerenciar relacionamentos bidirecionais (se aplicável)
-    // public void addVideo(Video video) {
-    //     videos.add(video);
-    //     video.setExperimento(this);
-    // }
-    // public void removeVideo(Video video) {
-    //     videos.remove(video);
-    //     video.setExperimento(null);
-    // }
-    // ... (similar para Audio e DadoSmartwatch)
 
     public void addParticipante(Participante participante) {
         this.participantes.add(participante);
-        participante.getExperimentos().add(this); // Mantém o lado inverso sincronizado
+        participante.getExperimentos().add(this);
     }
 
     public void removeParticipante(Participante participante) {
@@ -95,15 +85,25 @@ public class Experimento {
         participante.getExperimentos().remove(this);
     }
 
-    // Getters e Setters
+    // VVVV GETTERS E SETTERS ATUALIZADOS VVVV
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getNome() { return nome; }
     public void setNome(String nome) { this.nome = nome; }
-    public String getDescricao() { return descricao; }
-    public void setDescricao(String descricao) { this.descricao = descricao; }
-    public LocalDateTime getDataCriacao() { return dataCriacao; }
 
+    public String getDescricaoGeral() { return descricaoGeral; }
+    public void setDescricaoGeral(String descricaoGeral) { this.descricaoGeral = descricaoGeral; }
+
+    public String getResultadoEmocional() { return resultadoEmocional; }
+    public void setResultadoEmocional(String resultadoEmocional) { this.resultadoEmocional = resultadoEmocional; }
+
+    // Getter e Setter agora lidam com Lista
+    public List<String> getUrlsMidia() { return urlsMidia; }
+    public void setUrlsMidia(List<String> urlsMidia) { this.urlsMidia = urlsMidia; }
+
+    // ^^^^ FIM DAS ATUALIZAÇÕES ^^^^
+
+    public LocalDateTime getDataCriacao() { return dataCriacao; }
     public void setDataCriacao(LocalDateTime dataCriacao) { this.dataCriacao = dataCriacao; }
     public @NotNull(message = "A data de início é obrigatória.") @FutureOrPresent(message = "A data de início não pode ser no passado.") LocalDate getDataInicio() { return dataInicio; }
     public void setDataInicio(@NotNull(message = "A data de início é obrigatória.") @FutureOrPresent(message = "A data de início não pode ser no passado.") LocalDate dataInicio) { this.dataInicio = dataInicio; }
@@ -117,4 +117,7 @@ public class Experimento {
     public void setDescricaoAmbiente(String descricaoAmbiente) { this.descricaoAmbiente = descricaoAmbiente; }
     public Set<Participante> getParticipantes() { return participantes; }
     public void setParticipantes(Set<Participante> participantes) { this.participantes = participantes; }
+
+    public Participante getParticipantePrincipal() { return participantePrincipal; }
+    public void setParticipantePrincipal(Participante participantePrincipal) { this.participantePrincipal = participantePrincipal; }
 }
