@@ -1,13 +1,14 @@
 package com.vibetrack.backend.users.Service;
 
+import com.vibetrack.backend.users.DTO.DashboardDTO.ChartDataDTO;
 import com.vibetrack.backend.users.DTO.DashboardDTO.DashboardDTO;
 import com.vibetrack.backend.users.DTO.DashboardDTO.LineChartDataDTO;
 import com.vibetrack.backend.users.DTO.DashboardDTO.LineChartDatasetDTO;
-import com.vibetrack.backend.users.DTO.DashboardDTO.ChartDataDTO;
 import com.vibetrack.backend.users.DTO.ExperimentoRequestDTO;
 import com.vibetrack.backend.users.DTO.ExperimentoResponseDTO;
 import com.vibetrack.backend.users.Entity.Enums.StatusExperimento;
 import com.vibetrack.backend.users.Entity.Experimento;
+import com.vibetrack.backend.users.Entity.Midia;
 import com.vibetrack.backend.users.Entity.Participante;
 import com.vibetrack.backend.users.Entity.Pesquisador;
 import com.vibetrack.backend.users.Mapper.ExperimentoMapper;
@@ -21,6 +22,8 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import com.vibetrack.backend.users.Entity.DadoBiometrico;
 import com.vibetrack.backend.users.Repository.DadoBiometricoRepository;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,14 +40,11 @@ public class ExperimentoService {
     private ExperimentoMapper experimentoMapper;
     @Autowired
     private DadoBiometricoRepository dadoBiometricoRepository;
-    @Autowired
-    private FileStorageService fileStorageService;
 
     @Autowired
     private EmailService emailService;
 
     @Transactional
-    // VVVV MUDANÇA: Recebe LISTA de arquivos VVVV
     public ExperimentoResponseDTO salvarComMidia(ExperimentoRequestDTO requestDTO, List<MultipartFile> midiaFiles) {
         Pesquisador pesquisador = pesquisadorRepository.findById(requestDTO.pesquisadorId())
                 .orElseThrow(() -> new EntityNotFoundException("Pesquisador com ID " + requestDTO.pesquisadorId() + " não encontrado."));
@@ -53,6 +53,7 @@ public class ExperimentoService {
             throw new IllegalArgumentException("A data de início não pode ser depois da data de fim.");
         }
 
+        // VVVV LÓGICA DE BUSCA E ASSOCIAÇÃO DO PARTICIPANTE VVVV
         Participante participante = null;
         if (requestDTO.participanteId() != null) {
             participante = participanteRepository.findById(requestDTO.participanteId())
@@ -61,18 +62,21 @@ public class ExperimentoService {
 
         Experimento experimento = experimentoMapper.toEntity(requestDTO);
         experimento.setPesquisadorResponsavel(pesquisador);
-        experimento.setParticipantePrincipal(participante);
+        experimento.setParticipantePrincipal(participante); // <-- Associa o participante principal
+        // ^^^^ FIM DA LÓGICA DE BUSCA ^^^^
 
-        // Lógica de Multiplos Arquivos
+        // Lógica BLOB (Salvar no Banco)
         if (midiaFiles != null && !midiaFiles.isEmpty()) {
-            List<String> urls = new ArrayList<>();
             for (MultipartFile file : midiaFiles) {
                 if (!file.isEmpty()) {
-                    String nomeArquivo = fileStorageService.storeFile(file);
-                    urls.add("http://localhost:8080/fotos-perfil/" + nomeArquivo);
+                    try {
+                        Midia midia = new Midia(file.getOriginalFilename(), file.getContentType(), file.getBytes());
+                        experimento.getMidias().add(midia);
+                    } catch (IOException e) {
+                        throw new RuntimeException("Erro ao processar arquivo de mídia", e);
+                    }
                 }
             }
-            experimento.setUrlsMidia(urls); // Salva a lista de URLs
         }
 
         Experimento experimentoSalvo = experimentoRepository.save(experimento);
@@ -87,27 +91,23 @@ public class ExperimentoService {
     }
 
     @Transactional
-    // VVVV MUDANÇA: Recebe LISTA de arquivos no Update também VVVV
     public ExperimentoResponseDTO atualizarMidia(Long id, List<MultipartFile> midiaFiles) {
         Experimento experimento = experimentoRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Experimento com ID " + id + " não encontrado."));
 
-        if (midiaFiles != null && !midiaFiles.isEmpty()) {
-            List<String> urls = new ArrayList<>();
-            // Mantém as existentes se quiser (opcional), aqui estamos SUBSTITUINDO a lista
-            // Se quiser adicionar, teria que pegar experimento.getUrlsMidia() e adicionar.
-            // Vamos substituir para simplificar a edição:
+        experimento.getMidias().clear(); // Limpa as mídias antigas
 
+        if (midiaFiles != null && !midiaFiles.isEmpty()) {
             for (MultipartFile file : midiaFiles) {
                 if (!file.isEmpty()) {
-                    String nomeArquivo = fileStorageService.storeFile(file);
-                    urls.add("http://localhost:8080/fotos-perfil/" + nomeArquivo);
+                    try {
+                        Midia midia = new Midia(file.getOriginalFilename(), file.getContentType(), file.getBytes());
+                        experimento.getMidias().add(midia);
+                    } catch (IOException e) {
+                        throw new RuntimeException("Erro ao processar arquivo de mídia na atualização", e);
+                    }
                 }
             }
-            experimento.setUrlsMidia(urls);
-        } else {
-            // Se enviou lista vazia, limpa as mídias
-            experimento.setUrlsMidia(new ArrayList<>());
         }
 
         Experimento experimentoAtualizado = experimentoRepository.save(experimento);
@@ -116,7 +116,7 @@ public class ExperimentoService {
 
     @Transactional
     public ExperimentoResponseDTO salvar(ExperimentoRequestDTO requestDTO) {
-        return salvarComMidia(requestDTO, null); // Reutiliza o método acima
+        return salvarComMidia(requestDTO, null); // Reutiliza o método principal
     }
 
     @Transactional(readOnly = true)
@@ -137,17 +137,14 @@ public class ExperimentoService {
         Experimento experimentoExistente = experimentoRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Experimento com ID " + id + " não encontrado."));
 
+        // VVVV LÓGICA DE BUSCA E ASSOCIAÇÃO DO PARTICIPANTE (Para o UPDATE) VVVV
         Participante participante = null;
         if (requestDTO.participanteId() != null) {
             participante = participanteRepository.findById(requestDTO.participanteId())
                     .orElseThrow(() -> new EntityNotFoundException("Participante com ID " + requestDTO.participanteId() + " não encontrado."));
         }
-        experimentoExistente.setParticipantePrincipal(participante);
-
-        // VVVV MUDANÇA: Atualiza a lista de URLs se vier no DTO (Salvar Notas) VVVV
-        if (requestDTO.urlsMidia() != null) {
-            experimentoExistente.setUrlsMidia(requestDTO.urlsMidia());
-        }
+        experimentoExistente.setParticipantePrincipal(participante); // <-- Associa o participante principal
+        // ^^^^ FIM DA LÓGICA DE BUSCA ^^^^
 
         experimentoExistente.setNome(requestDTO.nome());
         experimentoExistente.setDescricaoGeral(requestDTO.descricaoAmbiente());
@@ -201,7 +198,6 @@ public class ExperimentoService {
                 dadosBatimentos.add(0);
             }
         }
-
         var datasetFrequencia = new LineChartDatasetDTO("Batimentos por Minuto (BPM)", dadosBatimentos);
         var graficoFrequencia = new LineChartDataDTO(labelsTipos, List.of(datasetFrequencia));
         var graficoEmocoes = new ChartDataDTO(List.of(), List.of());
