@@ -1,17 +1,18 @@
-package com.vibetrack.backend.users.Controller; // Ou o caminho mais específico
+package com.vibetrack.backend.users.Controller;
 
 import com.vibetrack.backend.users.DTO.DashboardDTO.DashboardDTO;
+import com.vibetrack.backend.users.DTO.ExperimentoRequestDTO;
+import com.vibetrack.backend.users.DTO.ExperimentoResponseDTO;
 import com.vibetrack.backend.users.Service.ExperimentoService;
+import jakarta.validation.Valid;
+import jakarta.persistence.EntityNotFoundException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.http.MediaType;
-import com.vibetrack.backend.users.DTO.ExperimentoRequestDTO;
-import com.vibetrack.backend.users.DTO.ExperimentoResponseDTO;
-import jakarta.validation.Valid;
-import jakarta.persistence.EntityNotFoundException;
 
 import java.util.List;
 
@@ -26,12 +27,27 @@ public class ExperimentoController {
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ExperimentoResponseDTO> criarExperimento(
             @RequestPart("experimento") @Valid ExperimentoRequestDTO requestDTO,
-            @RequestPart(value = "midia", required = false) MultipartFile midiaFile) {
+            // VVVV MUDANÇA: Agora aceita uma LISTA de arquivos VVVV
+            @RequestPart(value = "midia", required = false) List<MultipartFile> midiaFiles) {
 
-        // Agora, o service precisa de um método que aceite os dados E o arquivo
-        ExperimentoResponseDTO responseDTO = experimentoService.salvarComMidia(requestDTO, midiaFile);
+        ExperimentoResponseDTO responseDTO = experimentoService.salvarComMidia(requestDTO, midiaFiles);
         return ResponseEntity.status(HttpStatus.CREATED).body(responseDTO);
     }
+
+    @PutMapping(value = "/{id}/midia", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ExperimentoResponseDTO> alterarMidiaExperimento(
+            @PathVariable Long id,
+            // VVVV MUDANÇA: Agora aceita uma LISTA de arquivos VVVV
+            @RequestPart("midia") List<MultipartFile> midiaFiles) {
+
+        try {
+            ExperimentoResponseDTO responseDTO = experimentoService.atualizarMidia(id, midiaFiles);
+            return ResponseEntity.ok(responseDTO);
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+    // ^^^^ FIM DAS MUDANÇAS ^^^^
 
     @PostMapping("/{idExperimento}/participantes/{idParticipante}")
     public ResponseEntity<Void> adicionarParticipanteAoExperimento(
@@ -39,20 +55,17 @@ public class ExperimentoController {
             @PathVariable Long idParticipante) {
 
         experimentoService.adicionarParticipante(idExperimento, idParticipante);
-        return ResponseEntity.ok().build(); // Retorna 200 OK se a operação for bem-sucedida
+        return ResponseEntity.ok().build();
     }
+
     @GetMapping
     public ResponseEntity<List<ExperimentoResponseDTO>> listarTodosExperimentos() {
-        // 1. O service.buscarTodos() já retorna a lista de DTOs prontinha.
         List<ExperimentoResponseDTO> experimentosDTO = experimentoService.buscarTodos();
-
-        // 2. Retorne a lista de DTOs com o status 200 OK.
         return ResponseEntity.ok(experimentosDTO);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ExperimentoResponseDTO> buscarExperimentoPorId(@PathVariable Long id) {
-        // O tratamento de erro pode ser feito aqui com um try-catch ou globalmente com @ControllerAdvice
         try {
             return ResponseEntity.ok(experimentoService.buscarPorId(id));
         } catch (EntityNotFoundException e) {
@@ -60,7 +73,6 @@ public class ExperimentoController {
         }
     }
 
-    // Endpoint para ATUALIZAR um experimento existente
     @PutMapping("/{id}")
     public ResponseEntity<ExperimentoResponseDTO> atualizarExperimento(@PathVariable Long id, @Valid @RequestBody ExperimentoRequestDTO requestDTO) {
         try {
@@ -71,22 +83,23 @@ public class ExperimentoController {
         }
     }
 
-    // Endpoint para DELETAR um experimento
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletarExperimento(@PathVariable Long id) {
         try {
             experimentoService.deletar(id);
-            return ResponseEntity.noContent().build(); // Retorna 204 No Content (sucesso, sem corpo)
+            return ResponseEntity.noContent().build();
         } catch (EntityNotFoundException e) {
             return ResponseEntity.notFound().build();
         }
     }
 
-    // No seu ExperimentoController.java
-
     @GetMapping("/{id}/dashboard")
     public ResponseEntity<DashboardDTO> getDashboardData(@PathVariable Long id) {
-        DashboardDTO dashboardData = experimentoService.getDashboardDataMock(id);
-        return ResponseEntity.ok(dashboardData);
+        try {
+            DashboardDTO dashboardData = experimentoService.getDashboardData(id);
+            return ResponseEntity.ok(dashboardData);
+        } catch (EntityNotFoundException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 }

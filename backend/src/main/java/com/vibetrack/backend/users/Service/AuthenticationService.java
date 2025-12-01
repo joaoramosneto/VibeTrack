@@ -1,5 +1,6 @@
 package com.vibetrack.backend.users.Service;
 
+import com.vibetrack.backend.users.Entity.Pesquisador;
 import com.vibetrack.backend.users.Repository.PesquisadorRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -15,6 +16,17 @@ public class AuthenticationService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        return pesquisadorRepository.findByEmail(username);
+
+        Pesquisador pesquisador = pesquisadorRepository.findByEmail(username);
+
+        // VVVV DEBUG ADICIONADO AQUI VVVV
+        if (pesquisador == null) {
+            System.out.println(">>> DEBUG AUTH: Usuário não encontrado no banco: " + username);
+            throw new UsernameNotFoundException("Usuário não encontrado: " + username);
+        }
+        System.out.println(">>> DEBUG AUTH: Usuário encontrado. Status Ativo: " + pesquisador.isAtivo());
+        // ^^^^ DEBUG ADICIONADO AQUI ^^^^
+
+        return pesquisador;
     }
 }

@@ -1,9 +1,9 @@
 package com.vibetrack.backend.users.Service;
 
-import com.vibetrack.backend.users.DTO.DashboardDTO.ChartDataDTO;
 import com.vibetrack.backend.users.DTO.DashboardDTO.DashboardDTO;
 import com.vibetrack.backend.users.DTO.DashboardDTO.LineChartDataDTO;
 import com.vibetrack.backend.users.DTO.DashboardDTO.LineChartDatasetDTO;
+import com.vibetrack.backend.users.DTO.DashboardDTO.ChartDataDTO;
 import com.vibetrack.backend.users.DTO.ExperimentoRequestDTO;
 import com.vibetrack.backend.users.DTO.ExperimentoResponseDTO;
 import com.vibetrack.backend.users.Entity.Enums.StatusExperimento;
@@ -19,7 +19,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-
+import com.vibetrack.backend.users.Entity.DadoBiometrico;
+import com.vibetrack.backend.users.Repository.DadoBiometricoRepository;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -33,13 +35,17 @@ public class ExperimentoService {
     private ParticipanteRepository participanteRepository;
     @Autowired
     private ExperimentoMapper experimentoMapper;
+    @Autowired
+    private DadoBiometricoRepository dadoBiometricoRepository;
+    @Autowired
+    private FileStorageService fileStorageService;
 
-    // vvvv PASSO 1: INJETAR O SERVIÇO DE EMAIL vvvv
     @Autowired
     private EmailService emailService;
 
     @Transactional
-    public ExperimentoResponseDTO salvarComMidia(ExperimentoRequestDTO requestDTO, MultipartFile midiaFile) {
+    // VVVV MUDANÇA: Recebe LISTA de arquivos VVVV
+    public ExperimentoResponseDTO salvarComMidia(ExperimentoRequestDTO requestDTO, List<MultipartFile> midiaFiles) {
         Pesquisador pesquisador = pesquisadorRepository.findById(requestDTO.pesquisadorId())
                 .orElseThrow(() -> new EntityNotFoundException("Pesquisador com ID " + requestDTO.pesquisadorId() + " não encontrado."));
 
@@ -47,51 +53,70 @@ public class ExperimentoService {
             throw new IllegalArgumentException("A data de início não pode ser depois da data de fim.");
         }
 
+        Participante participante = null;
+        if (requestDTO.participanteId() != null) {
+            participante = participanteRepository.findById(requestDTO.participanteId())
+                    .orElseThrow(() -> new EntityNotFoundException("Participante com ID " + requestDTO.participanteId() + " não encontrado."));
+        }
+
         Experimento experimento = experimentoMapper.toEntity(requestDTO);
         experimento.setPesquisadorResponsavel(pesquisador);
+        experimento.setParticipantePrincipal(participante);
 
-        if (midiaFile != null && !midiaFile.isEmpty()) {
-            System.out.println("Arquivo de mídia recebido: " + midiaFile.getOriginalFilename());
-            System.out.println("Tamanho do arquivo: " + midiaFile.getSize() + " bytes");
-            // TODO: Implementar a lógica real de salvamento do arquivo
+        // Lógica de Multiplos Arquivos
+        if (midiaFiles != null && !midiaFiles.isEmpty()) {
+            List<String> urls = new ArrayList<>();
+            for (MultipartFile file : midiaFiles) {
+                if (!file.isEmpty()) {
+                    String nomeArquivo = fileStorageService.storeFile(file);
+                    urls.add("http://localhost:8080/fotos-perfil/" + nomeArquivo);
+                }
+            }
+            experimento.setUrlsMidia(urls); // Salva a lista de URLs
         }
 
         Experimento experimentoSalvo = experimentoRepository.save(experimento);
 
-        // vvvv PASSO 2: CHAMAR O SERVIÇO DE EMAIL AQUI vvvv
-        // Dispara o email de confirmação em segundo plano
         emailService.enviarEmailConfirmacaoExperimento(
                 pesquisador.getEmail(),
                 pesquisador.getNome(),
                 experimentoSalvo.getNome()
         );
-        // ^^^^ FIM DA CHAMADA ^^^^
 
         return experimentoMapper.toResponseDTO(experimentoSalvo);
     }
 
-    // O resto dos seus métodos continuam exatamente como estavam antes
     @Transactional
-    public ExperimentoResponseDTO salvar(ExperimentoRequestDTO requestDTO) {
-        Pesquisador pesquisador = pesquisadorRepository.findById(requestDTO.pesquisadorId())
-                .orElseThrow(() -> new EntityNotFoundException("Pesquisador com ID " + requestDTO.pesquisadorId() + " não encontrado."));
+    // VVVV MUDANÇA: Recebe LISTA de arquivos no Update também VVVV
+    public ExperimentoResponseDTO atualizarMidia(Long id, List<MultipartFile> midiaFiles) {
+        Experimento experimento = experimentoRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Experimento com ID " + id + " não encontrado."));
 
-        if (requestDTO.dataInicio().isAfter(requestDTO.dataFim())) {
-            throw new IllegalArgumentException("A data de início não pode ser depois da data de fim.");
+        if (midiaFiles != null && !midiaFiles.isEmpty()) {
+            List<String> urls = new ArrayList<>();
+            // Mantém as existentes se quiser (opcional), aqui estamos SUBSTITUINDO a lista
+            // Se quiser adicionar, teria que pegar experimento.getUrlsMidia() e adicionar.
+            // Vamos substituir para simplificar a edição:
+
+            for (MultipartFile file : midiaFiles) {
+                if (!file.isEmpty()) {
+                    String nomeArquivo = fileStorageService.storeFile(file);
+                    urls.add("http://localhost:8080/fotos-perfil/" + nomeArquivo);
+                }
+            }
+            experimento.setUrlsMidia(urls);
+        } else {
+            // Se enviou lista vazia, limpa as mídias
+            experimento.setUrlsMidia(new ArrayList<>());
         }
 
-        Experimento experimento = experimentoMapper.toEntity(requestDTO);
-        experimento.setPesquisadorResponsavel(pesquisador);
-        Experimento experimentoSalvo = experimentoRepository.save(experimento);
+        Experimento experimentoAtualizado = experimentoRepository.save(experimento);
+        return experimentoMapper.toResponseDTO(experimentoAtualizado);
+    }
 
-        // Também vamos adicionar o envio de email aqui, para o caso de este método ser usado
-        emailService.enviarEmailConfirmacaoExperimento(
-                pesquisador.getEmail(),
-                pesquisador.getNome(),
-                experimentoSalvo.getNome()
-        );
-
-        return experimentoMapper.toResponseDTO(experimentoSalvo);
+    @Transactional
+    public ExperimentoResponseDTO salvar(ExperimentoRequestDTO requestDTO) {
+        return salvarComMidia(requestDTO, null); // Reutiliza o método acima
     }
 
     @Transactional(readOnly = true)
@@ -112,8 +137,21 @@ public class ExperimentoService {
         Experimento experimentoExistente = experimentoRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Experimento com ID " + id + " não encontrado."));
 
+        Participante participante = null;
+        if (requestDTO.participanteId() != null) {
+            participante = participanteRepository.findById(requestDTO.participanteId())
+                    .orElseThrow(() -> new EntityNotFoundException("Participante com ID " + requestDTO.participanteId() + " não encontrado."));
+        }
+        experimentoExistente.setParticipantePrincipal(participante);
+
+        // VVVV MUDANÇA: Atualiza a lista de URLs se vier no DTO (Salvar Notas) VVVV
+        if (requestDTO.urlsMidia() != null) {
+            experimentoExistente.setUrlsMidia(requestDTO.urlsMidia());
+        }
+
         experimentoExistente.setNome(requestDTO.nome());
-        experimentoExistente.setDescricao(requestDTO.descricao());
+        experimentoExistente.setDescricaoGeral(requestDTO.descricaoAmbiente());
+        experimentoExistente.setResultadoEmocional(requestDTO.tipoEmocao());
         experimentoExistente.setDataInicio(requestDTO.dataInicio());
         experimentoExistente.setDataFim(requestDTO.dataFim());
         experimentoExistente.setStatusExperimento(StatusExperimento.valueOf(requestDTO.statusExperimento()));
@@ -134,7 +172,6 @@ public class ExperimentoService {
     public void adicionarParticipante(Long idExperimento, Long idParticipante) {
         Experimento experimento = experimentoRepository.findById(idExperimento)
                 .orElseThrow(() -> new EntityNotFoundException("Experimento com ID " + idExperimento + " não encontrado."));
-
         Participante participante = participanteRepository.findById(idParticipante)
                 .orElseThrow(() -> new EntityNotFoundException("Participante com ID " + idParticipante + " não encontrado."));
 
@@ -142,22 +179,33 @@ public class ExperimentoService {
         experimentoRepository.save(experimento);
     }
 
-    public DashboardDTO getDashboardDataMock(Long experimentoId) {
-        // Simula que estamos buscando um experimento
-        // Experimento experimento = experimentoRepository.findById(experimentoId).orElseThrow(...);
+    @Transactional(readOnly = true)
+    public DashboardDTO getDashboardData(Long experimentoId) {
+        if (!experimentoRepository.existsById(experimentoId)) {
+            throw new EntityNotFoundException("Experimento com ID " + experimentoId + " não encontrado.");
+        }
 
-        // Mock para o gráfico de Frequência Cardíaca (Linha)
-        var labelsTempo = List.of("0s", "10s", "20s", "30s", "40s", "50s", "60s");
-        var dadosBatimentos = List.of(72, 75, 74, 80, 85, 82, 78);
-        var datasetFrequencia = new LineChartDatasetDTO("Frequência Cardíaca (BPM)", dadosBatimentos);
-        var graficoFrequencia = new LineChartDataDTO(labelsTempo, List.of(datasetFrequencia));
+        List<String> labelsTipos = List.of("FC Mínima", "FC Média", "FC Máxima");
+        List<Integer> dadosBatimentos = new ArrayList<>();
+        List<String> tipos = List.of("FC_MINIMA", "FC_MEDIA", "FC_MAXIMA");
 
-        // Mock para o gráfico de Distribuição de Emoções (Pizza)
-        var labelsEmocoes = List.of("Neutro", "Feliz", "Surpreso", "Triste");
-        var dadosContagem = List.of(150, 90, 45, 15); // Simula a contagem de frames/eventos
-        var graficoEmocoes = new ChartDataDTO(labelsEmocoes, dadosContagem);
+        for (String tipo : tipos) {
+            List<DadoBiometrico> dados = dadoBiometricoRepository.findByExperimentoIdAndTipoDadoOrderByTimestampAsc(
+                    experimentoId,
+                    tipo
+            );
+            if (!dados.isEmpty()) {
+                DadoBiometrico ultimoDado = dados.get(dados.size() - 1);
+                dadosBatimentos.add(ultimoDado.getValor().intValue());
+            } else {
+                dadosBatimentos.add(0);
+            }
+        }
 
-        // Junta tudo no DTO principal e retorna
+        var datasetFrequencia = new LineChartDatasetDTO("Batimentos por Minuto (BPM)", dadosBatimentos);
+        var graficoFrequencia = new LineChartDataDTO(labelsTipos, List.of(datasetFrequencia));
+        var graficoEmocoes = new ChartDataDTO(List.of(), List.of());
+
         return new DashboardDTO(graficoFrequencia, graficoEmocoes);
     }
 }
