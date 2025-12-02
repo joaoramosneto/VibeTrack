@@ -44,6 +44,8 @@ public class ExperimentoService {
     @Autowired
     private EmailService emailService;
 
+    // --- MÉTODOS DE ESCRITA ---
+
     @Transactional
     public ExperimentoResponseDTO salvarComMidia(ExperimentoRequestDTO requestDTO, List<MultipartFile> midiaFiles) {
         Pesquisador pesquisador = pesquisadorRepository.findById(requestDTO.pesquisadorId())
@@ -53,7 +55,6 @@ public class ExperimentoService {
             throw new IllegalArgumentException("A data de início não pode ser depois da data de fim.");
         }
 
-        // VVVV LÓGICA DE BUSCA E ASSOCIAÇÃO DO PARTICIPANTE VVVV
         Participante participante = null;
         if (requestDTO.participanteId() != null) {
             participante = participanteRepository.findById(requestDTO.participanteId())
@@ -62,10 +63,14 @@ public class ExperimentoService {
 
         Experimento experimento = experimentoMapper.toEntity(requestDTO);
         experimento.setPesquisadorResponsavel(pesquisador);
-        experimento.setParticipantePrincipal(participante); // <-- Associa o participante principal
-        // ^^^^ FIM DA LÓGICA DE BUSCA ^^^^
+        experimento.setParticipantePrincipal(participante);
 
-        // Lógica BLOB (Salvar no Banco)
+        // VVVV CORREÇÃO: Se escolheu um participante principal, adiciona na lista de inscritos também! VVVV
+        if (participante != null) {
+            experimento.getParticipantes().add(participante);
+        }
+        // ^^^^ FIM ^^^^
+
         if (midiaFiles != null && !midiaFiles.isEmpty()) {
             for (MultipartFile file : midiaFiles) {
                 if (!file.isEmpty()) {
@@ -86,7 +91,6 @@ public class ExperimentoService {
                 pesquisador.getNome(),
                 experimentoSalvo.getNome()
         );
-
         return experimentoMapper.toResponseDTO(experimentoSalvo);
     }
 
@@ -94,8 +98,6 @@ public class ExperimentoService {
     public ExperimentoResponseDTO atualizarMidia(Long id, List<MultipartFile> midiaFiles) {
         Experimento experimento = experimentoRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Experimento com ID " + id + " não encontrado."));
-
-        experimento.getMidias().clear(); // Limpa as mídias antigas
 
         if (midiaFiles != null && !midiaFiles.isEmpty()) {
             for (MultipartFile file : midiaFiles) {
@@ -109,27 +111,13 @@ public class ExperimentoService {
                 }
             }
         }
-
         Experimento experimentoAtualizado = experimentoRepository.save(experimento);
         return experimentoMapper.toResponseDTO(experimentoAtualizado);
     }
 
     @Transactional
     public ExperimentoResponseDTO salvar(ExperimentoRequestDTO requestDTO) {
-        return salvarComMidia(requestDTO, null); // Reutiliza o método principal
-    }
-
-    @Transactional(readOnly = true)
-    public List<ExperimentoResponseDTO> buscarTodos() {
-        List<Experimento> experimentos = experimentoRepository.findAll();
-        return experimentoMapper.toResponseDTOList(experimentos);
-    }
-
-    @Transactional(readOnly = true)
-    public ExperimentoResponseDTO buscarPorId(Long id) {
-        Experimento experimento = experimentoRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("Experimento com ID " + id + " não encontrado."));
-        return experimentoMapper.toResponseDTO(experimento);
+        return salvarComMidia(requestDTO, null);
     }
 
     @Transactional
@@ -137,15 +125,12 @@ public class ExperimentoService {
         Experimento experimentoExistente = experimentoRepository.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Experimento com ID " + id + " não encontrado."));
 
-        // VVVV LÓGICA DE BUSCA E ASSOCIAÇÃO DO PARTICIPANTE (Para o UPDATE) VVVV
         Participante participante = null;
         if (requestDTO.participanteId() != null) {
             participante = participanteRepository.findById(requestDTO.participanteId())
                     .orElseThrow(() -> new EntityNotFoundException("Participante com ID " + requestDTO.participanteId() + " não encontrado."));
         }
-        experimentoExistente.setParticipantePrincipal(participante); // <-- Associa o participante principal
-        // ^^^^ FIM DA LÓGICA DE BUSCA ^^^^
-
+        experimentoExistente.setParticipantePrincipal(participante);
         experimentoExistente.setNome(requestDTO.nome());
         experimentoExistente.setDescricaoGeral(requestDTO.descricaoAmbiente());
         experimentoExistente.setResultadoEmocional(requestDTO.tipoEmocao());
@@ -168,32 +153,58 @@ public class ExperimentoService {
     @Transactional
     public void adicionarParticipante(Long idExperimento, Long idParticipante) {
         Experimento experimento = experimentoRepository.findById(idExperimento)
-                .orElseThrow(() -> new EntityNotFoundException("Experimento com ID " + idExperimento + " não encontrado."));
+                .orElseThrow(() -> new EntityNotFoundException("Experimento não encontrado."));
         Participante participante = participanteRepository.findById(idParticipante)
-                .orElseThrow(() -> new EntityNotFoundException("Participante com ID " + idParticipante + " não encontrado."));
+                .orElseThrow(() -> new EntityNotFoundException("Participante não encontrado."));
 
+        // Adiciona à lista
         experimento.getParticipantes().add(participante);
+
+        // Salva explicitamente
         experimentoRepository.save(experimento);
+
+        // Uso getNomeCompleto() conforme seu código de Participante
+        System.out.println(">> PARTICIPANTE " + participante.getNomeCompleto() + " ADICIONADO AO EXP " + experimento.getNome());
+    }
+
+    // --- MÉTODOS DE LEITURA (COM CORREÇÃO LAZY LOADING) ---
+
+    @Transactional(readOnly = true)
+    public List<ExperimentoResponseDTO> buscarTodos() {
+        List<Experimento> experimentos = experimentoRepository.findAll();
+
+        // Força o carregamento da lista de participantes para não ir vazia
+        experimentos.forEach(e -> {
+            e.getParticipantes().size();
+        });
+
+        return experimentoMapper.toResponseDTOList(experimentos);
+    }
+
+    @Transactional(readOnly = true)
+    public ExperimentoResponseDTO buscarPorId(Long id) {
+        Experimento experimento = experimentoRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Experimento não encontrado."));
+
+        // Força carregamento da lista
+        experimento.getParticipantes().size();
+
+        return experimentoMapper.toResponseDTO(experimento);
     }
 
     @Transactional(readOnly = true)
     public DashboardDTO getDashboardData(Long experimentoId) {
         if (!experimentoRepository.existsById(experimentoId)) {
-            throw new EntityNotFoundException("Experimento com ID " + experimentoId + " não encontrado.");
+            throw new EntityNotFoundException("Experimento não encontrado.");
         }
-
         List<String> labelsTipos = List.of("FC Mínima", "FC Média", "FC Máxima");
         List<Integer> dadosBatimentos = new ArrayList<>();
         List<String> tipos = List.of("FC_MINIMA", "FC_MEDIA", "FC_MAXIMA");
 
         for (String tipo : tipos) {
-            List<DadoBiometrico> dados = dadoBiometricoRepository.findByExperimentoIdAndTipoDadoOrderByTimestampAsc(
-                    experimentoId,
-                    tipo
-            );
+            List<DadoBiometrico> dados = dadoBiometricoRepository.findByExperimentoIdAndTipoDadoOrderByTimestampAsc(experimentoId, tipo);
             if (!dados.isEmpty()) {
-                DadoBiometrico ultimoDado = dados.get(dados.size() - 1);
-                dadosBatimentos.add(ultimoDado.getValor().intValue());
+                dadosBatimentos.add(dados.get(dados.size() - 1).getValor().intValue());
             } else {
                 dadosBatimentos.add(0);
             }
@@ -201,7 +212,6 @@ public class ExperimentoService {
         var datasetFrequencia = new LineChartDatasetDTO("Batimentos por Minuto (BPM)", dadosBatimentos);
         var graficoFrequencia = new LineChartDataDTO(labelsTipos, List.of(datasetFrequencia));
         var graficoEmocoes = new ChartDataDTO(List.of(), List.of());
-
         return new DashboardDTO(graficoFrequencia, graficoEmocoes);
     }
 }
