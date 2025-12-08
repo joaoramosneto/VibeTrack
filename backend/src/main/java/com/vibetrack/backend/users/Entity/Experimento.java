@@ -6,9 +6,9 @@ import jakarta.validation.constraints.FutureOrPresent;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.ArrayList; // Import necessário
+import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;      // Import necessário
+import java.util.List;
 import java.util.Set;
 
 @Entity
@@ -29,12 +29,12 @@ public class Experimento {
     @Column(name = "resultado_emocional")
     private String resultadoEmocional;
 
-    // VVVV MUDANÇA: DE STRING PARA LISTA DE STRINGS VVVV
-    @ElementCollection
-    @CollectionTable(name = "experimento_midias", joinColumns = @JoinColumn(name = "experimento_id"))
-    @Column(name = "url_midia")
-    private List<String> urlsMidia = new ArrayList<>();
-    // ^^^^ ISSO CRIA UMA TABELA EXTRA SÓ PARA GUARDAR AS URLS ^^^^
+    // VVVV MUDANÇA CRÍTICA (BLOB) VVVV
+    // Removemos urlsMidia e usamos a relação com a tabela de Mídias
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @JoinColumn(name = "experimento_id") // Cria a chave estrangeira na tabela 'midias'
+    private List<Midia> midias = new ArrayList<>();
+    // ^^^^ FIM DA MUDANÇA ^^^^
 
     @Column(nullable = true, updatable = false)
     private LocalDateTime dataCriacao;
@@ -85,7 +85,12 @@ public class Experimento {
         participante.getExperimentos().remove(this);
     }
 
-    // VVVV GETTERS E SETTERS ATUALIZADOS VVVV
+    // Método auxiliar para adicionar mídia facilmente
+    public void adicionarMidia(Midia midia) {
+        this.midias.add(midia);
+    }
+
+    // Getters e Setters
     public Long getId() { return id; }
     public void setId(Long id) { this.id = id; }
     public String getNome() { return nome; }
@@ -97,11 +102,10 @@ public class Experimento {
     public String getResultadoEmocional() { return resultadoEmocional; }
     public void setResultadoEmocional(String resultadoEmocional) { this.resultadoEmocional = resultadoEmocional; }
 
-    // Getter e Setter agora lidam com Lista
-    public List<String> getUrlsMidia() { return urlsMidia; }
-    public void setUrlsMidia(List<String> urlsMidia) { this.urlsMidia = urlsMidia; }
-
-    // ^^^^ FIM DAS ATUALIZAÇÕES ^^^^
+    // VVVV GETTER E SETTER NOVOS VVVV
+    public List<Midia> getMidias() { return midias; }
+    public void setMidias(List<Midia> midias) { this.midias = midias; }
+    // ^^^^ FIM VVVV
 
     public LocalDateTime getDataCriacao() { return dataCriacao; }
     public void setDataCriacao(LocalDateTime dataCriacao) { this.dataCriacao = dataCriacao; }
