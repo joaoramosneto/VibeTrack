@@ -34,19 +34,19 @@ public class ExperimentoController {
         return ResponseEntity.status(HttpStatus.CREATED).body(responseDTO);
     }
 
-    @PutMapping(value = "/{id}/midia", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PutMapping(value = "/{id}/dashboard", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ExperimentoResponseDTO> alterarMidiaExperimento(
-            @PathVariable Long id,
-            // VVVV MUDANÇA: Agora aceita uma LISTA de arquivos VVVV
+             @PathVariable Long id,
             @RequestPart("midia") List<MultipartFile> midiaFiles) {
 
-        try {
-            ExperimentoResponseDTO responseDTO = experimentoService.atualizarMidia(id, midiaFiles);
-            return ResponseEntity.ok(responseDTO);
+         try {
+            // O serviço continua o mesmo, processando o upload e salvando as URLs
+             ExperimentoResponseDTO responseDTO = experimentoService.atualizarMidia(id, midiaFiles);
+             return ResponseEntity.ok(responseDTO);
         } catch (EntityNotFoundException e) {
             return ResponseEntity.notFound().build();
         }
-    }
+     }
     // ^^^^ FIM DAS MUDANÇAS ^^^^
 
     @PostMapping("/{idExperimento}/participantes/{idParticipante}")
