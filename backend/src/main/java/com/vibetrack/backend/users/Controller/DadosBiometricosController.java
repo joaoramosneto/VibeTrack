@@ -11,13 +11,13 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/results")
+@RequestMapping("/api/dados-biometricos")
 public class DadosBiometricosController {
 
     @Autowired
     private DadosBiometricosService dadosBiometricosService;
 
-    @PostMapping
+    @PostMapping("/mobile-data")
     public ResponseEntity<String> receberDadosDoMobile(@RequestBody ExperimentResultDTO experimentResult) {
         try {
             dadosBiometricosService.salvarDados(experimentResult);

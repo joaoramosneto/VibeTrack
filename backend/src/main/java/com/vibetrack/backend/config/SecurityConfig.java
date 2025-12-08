@@ -1,7 +1,6 @@
 package com.vibetrack.backend.config;
 
 import com.vibetrack.backend.Security.SecurityFilter;
-import com.vibetrack.backend.users.Service.AuthenticationService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,20 +29,20 @@ public class SecurityConfig {
     @Autowired
     SecurityFilter securityFilter;
 
-    @Autowired
-    private AuthenticationService userDetailsService;
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authenticationProvider(authenticationProvider())
                 .cors(Customizer.withDefaults())
                 .csrf(csrf -> csrf.disable())
-                .headers(headers -> headers.frameOptions(frameOptionsConfig -> frameOptionsConfig.disable()))
+                .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(HttpMethod.POST, "/api/auth/**").permitAll()
+
+                        // CORREÇÃO 1: ROTA DE CRIAÇÃO CORRIGIDA
                         .requestMatchers(HttpMethod.POST, "/api/pesquisadores").permitAll()
+
                         .requestMatchers(HttpMethod.POST, "/api/dados-biometricos/mobile-data").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/mobile/results").permitAll()
 
@@ -80,9 +79,13 @@ public class SecurityConfig {
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
+
+        // CORREÇÃO 2: PERMITINDO QUALQUER ORIGEM (CELULAR, WEB, ETC.)
         configuration.setAllowedOrigins(Arrays.asList("*"));
+
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Cache-Control"));
+        // configuration.setAllowCredentials(true); // Removido pois não pode ser usado com "AllowedOrigins(*)"
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;
