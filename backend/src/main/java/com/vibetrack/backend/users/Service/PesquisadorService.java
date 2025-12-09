@@ -82,6 +82,16 @@ public class PesquisadorService {
         return pesquisadorMapper.toResponseDTO(pesquisador);
     }
 
+    // VVVV NOVO MÉTODO: DELETAR PESQUISADOR VVVV
+    @Transactional
+    public void deletarPesquisador(Long id) {
+        if (!pesquisadorRepository.existsById(id)) {
+            throw new EntityNotFoundException("Pesquisador com ID " + id + " não encontrado para deleção.");
+        }
+        pesquisadorRepository.deleteById(id);
+    }
+    // ^^^^ FIM DO NOVO MÉTODO ^^^^
+
     @Transactional
     public void verificarCodigoEAtivarConta(String codigo) {
         Pesquisador pesquisador = pesquisadorRepository.findByCodigoVerificacao(codigo)
@@ -92,7 +102,6 @@ public class PesquisadorService {
         pesquisadorRepository.save(pesquisador);
     }
 
-    // VVVV NOVO MÉTODO: ALTERAR SENHA (PERFIL) VVVV
     @Transactional
     public void alterarSenha(Long pesquisadorId, ChangePasswordRequestDTO requestDTO) {
         // 1. Valida se as senhas novas batem
@@ -113,5 +122,4 @@ public class PesquisadorService {
         pesquisador.setSenha(passwordEncoder.encode(requestDTO.novaSenha()));
         pesquisadorRepository.save(pesquisador);
     }
-    // ^^^^ FIM DO NOVO MÉTODO ^^^^
 }

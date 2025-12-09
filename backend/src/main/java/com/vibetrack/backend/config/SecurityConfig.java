@@ -1,6 +1,7 @@
 package com.vibetrack.backend.config;
 
 import com.vibetrack.backend.Security.SecurityFilter;
+import com.vibetrack.backend.users.Service.AuthenticationService; // Import necessário para userDetailsService
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -29,6 +30,9 @@ public class SecurityConfig {
     @Autowired
     SecurityFilter securityFilter;
 
+    @Autowired // Adicionado para resolver o erro de compilação no authenticationProvider
+    private AuthenticationService userDetailsService;
+
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -38,20 +42,36 @@ public class SecurityConfig {
                 .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(authorize -> authorize
+                        // Rota de Login/Registro (Aberto)
                         .requestMatchers(HttpMethod.POST, "/api/auth/**").permitAll()
-
-                        // CORREÇÃO 1: ROTA DE CRIAÇÃO CORRIGIDA
                         .requestMatchers(HttpMethod.POST, "/api/pesquisadores").permitAll()
 
+                        // Rotas Abertas (Coleta de Dados Mobile)
                         .requestMatchers(HttpMethod.POST, "/api/dados-biometricos/mobile-data").permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/mobile/results").permitAll()
 
-                        // VVVV LIBERAR ACESSO ÀS MÍDIAS VVVV
+                        // Leitura/Download de Mídias (Aberto)
                         .requestMatchers(HttpMethod.GET, "/api/midias/**").permitAll()
-                        // ^^^^ FIM ^^^^
-
                         .requestMatchers(HttpMethod.GET, "/fotos-perfil/**").permitAll()
                         .requestMatchers("/h2-console/**").permitAll()
+
+                        // VVVV CORREÇÃO: REGRAS ESPECÍFICAS PARA OPERAÇÕES PROTEGIDAS VVVV
+
+                        // 1. Permite DELETE na lista de pesquisadores
+                        .requestMatchers(HttpMethod.DELETE, "/api/pesquisadores/*").authenticated()
+
+                        // 2. Permite DELETE na lista de participantes (NOVO)
+                        .requestMatchers(HttpMethod.DELETE, "/api/participantes/*").authenticated()
+
+                        // 3. Permite DELETE de mídia individual
+                        .requestMatchers(HttpMethod.DELETE, "/api/midias/*").authenticated()
+
+                        // 4. Permite PUT (Upload de Mídia) e POST (Criação de Experimento)
+                        .requestMatchers(HttpMethod.PUT, "/api/experimentos/*").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/experimentos").authenticated()
+                        .requestMatchers(HttpMethod.PUT, "/api/experimentos/*/midia").authenticated()
+
+                        // Qualquer outra requisição deve ser autenticada por padrão
                         .anyRequest().authenticated()
                 )
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class);
@@ -79,13 +99,9 @@ public class SecurityConfig {
     @Bean
     CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-
-        // CORREÇÃO 2: PERMITINDO QUALQUER ORIGEM (CELULAR, WEB, ETC.)
         configuration.setAllowedOrigins(Arrays.asList("*"));
-
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "Cache-Control"));
-        // configuration.setAllowCredentials(true); // Removido pois não pode ser usado com "AllowedOrigins(*)"
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", configuration);
         return source;

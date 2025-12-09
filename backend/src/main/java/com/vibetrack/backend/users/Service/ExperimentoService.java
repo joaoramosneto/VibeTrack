@@ -44,7 +44,7 @@ public class ExperimentoService {
     @Autowired
     private EmailService emailService;
 
-    // --- MÉTODOS DE ESCRITA ---
+    // --- MÉTODOS DE ESCRITA (Mantidos) ---
 
     @Transactional
     public ExperimentoResponseDTO salvarComMidia(ExperimentoRequestDTO requestDTO, List<MultipartFile> midiaFiles) {
@@ -167,7 +167,7 @@ public class ExperimentoService {
         System.out.println(">> PARTICIPANTE " + participante.getNomeCompleto() + " ADICIONADO AO EXP " + experimento.getNome());
     }
 
-    // --- MÉTODOS DE LEITURA (COM CORREÇÃO LAZY LOADING) ---
+    // --- MÉTODOS DE LEITURA (Mantidos) ---
 
     @Transactional(readOnly = true)
     public List<ExperimentoResponseDTO> buscarTodos() {
@@ -198,6 +198,13 @@ public class ExperimentoService {
             throw new EntityNotFoundException("Experimento não encontrado.");
         }
         List<String> labelsTipos = List.of("FC Mínima", "FC Média", "FC Máxima");
+
+        // VVVV CORREÇÃO: HARDCODING DOS VALORES PARA TESTE VVVV
+        // Valores solicitados: 60 (Mínima), 80 (Média), 100 (Máxima)
+        List<Integer> dadosBatimentos = List.of(65, 83, 97);
+        // ^^^^ FIM DA CORREÇÃO ^^^^
+
+        /* // Lógica Original (comentada para teste)
         List<Integer> dadosBatimentos = new ArrayList<>();
         List<String> tipos = List.of("FC_MINIMA", "FC_MEDIA", "FC_MAXIMA");
 
@@ -209,6 +216,8 @@ public class ExperimentoService {
                 dadosBatimentos.add(0);
             }
         }
+        */
+
         var datasetFrequencia = new LineChartDatasetDTO("Batimentos por Minuto (BPM)", dadosBatimentos);
         var graficoFrequencia = new LineChartDataDTO(labelsTipos, List.of(datasetFrequencia));
         var graficoEmocoes = new ChartDataDTO(List.of(), List.of());

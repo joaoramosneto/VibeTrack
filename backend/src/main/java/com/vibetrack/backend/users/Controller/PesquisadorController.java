@@ -36,6 +36,19 @@ public class PesquisadorController {
         return ResponseEntity.ok(pesquisadores);
     }
 
+    // Endpoint para DELETAR um pesquisador por ID (NOVO)
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deletarPesquisador(@PathVariable Long id) {
+        try {
+            pesquisadorService.deletarPesquisador(id);
+            return ResponseEntity.noContent().build(); // Retorna 204 No Content para sucesso na deleção
+        } catch (Exception e) {
+            // Em um ambiente de produção, você pode retornar 404 (Not Found) se o ID não existir
+            // ou 403/409 se houver regras de negócio que impedem a deleção.
+            return ResponseEntity.internalServerError().build();
+        }
+    }
+
     @GetMapping("/me")
     public ResponseEntity<Pesquisador> getMeuPerfil(@AuthenticationPrincipal Pesquisador pesquisadorLogado) {
         return ResponseEntity.ok(pesquisadorLogado);
@@ -58,19 +71,16 @@ public class PesquisadorController {
         return ResponseEntity.ok().body("Foto atualizada com sucesso.");
     }
 
-    // vvvv NOVO ENDPOINT: ALTERAR SENHA vvvv
+    // Endpoint: ALTERAR SENHA
     @PutMapping("/me/senha")
     public ResponseEntity<?> alterarSenha(@AuthenticationPrincipal Pesquisador pesquisadorLogado, @RequestBody @Valid ChangePasswordRequestDTO requestDTO) {
         try {
-            // Chama o serviço passando o ID do usuário logado e os dados da requisição
             pesquisadorService.alterarSenha(pesquisadorLogado.getId(), requestDTO);
             return ResponseEntity.ok().body("Senha alterada com sucesso.");
         } catch (IllegalArgumentException e) {
-            // Retorna erro 400 se a senha atual estiver errada ou a confirmação falhar
             return ResponseEntity.badRequest().body(e.getMessage());
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body("Erro ao alterar senha.");
         }
     }
-    // ^^^^ FIM DO NOVO ENDPOINT ^^^^
 }
